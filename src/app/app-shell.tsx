@@ -27,9 +27,11 @@ import { useArmed } from '@/shared/hooks/use-armed';
 import { Toast } from '@/shared/toast';
 import styles from './app-shell.module.css';
 import { ImportWarnings, importStrings as I, loadFindOverlay } from '@/modules/import';
+import { earStrings as E, loadEarPanel } from '@/modules/ear';
 
 const LibraryOverlay = lazy(loadLibraryOverlay);
 const FindOverlay = lazy(loadFindOverlay);
+const EarPanel = lazy(loadEarPanel);
 
 function togglePlay(): void {
   if (playbackEngine.isPlaying) return playbackEngine.stopAll();
@@ -52,6 +54,7 @@ async function newScore(): Promise<void> {
 export function AppShell() {
   const [library, setLibrary] = useState(false);
   const [find, setFind] = useState(false);
+  const [ear, setEar] = useState(false);
   const enter = useNoteInput();
   const enterFromKeyboard = useCallback(
     (midi: number) => enter(midi, document.querySelector<HTMLElement>(`[data-midi="${midi}"]`)),
@@ -77,6 +80,9 @@ export function AppShell() {
             <button type="button" className={`${b.btn} ${b.primary}`} onClick={() => setFind(true)}>
               {I.find}
             </button>
+            <button type="button" className={b.btn} aria-pressed={ear} onClick={() => setEar((v) => !v)}>
+              {E.open}
+            </button>
             <button type="button" className={b.btn} onClick={() => setLibrary(true)}>
               {L.library}
             </button>
@@ -91,6 +97,11 @@ export function AppShell() {
         )}
         <ScoreMetaForm />
         <ViewBar />
+        {ear && (
+          <Suspense fallback={null}>
+            <EarPanel onClose={() => setEar(false)} />
+          </Suspense>
+        )}
         <ImportWarnings />
         <ScoreSheet />
         <div className={styles.statusRow}>

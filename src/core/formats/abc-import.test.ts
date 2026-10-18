@@ -57,3 +57,58 @@ describe('casos de formats-spec 14 (T-ABC-I-*)', () => {
     expect(() => parseAbcTune(undefined)).toThrow('No se pudo leer');
   });
 });
+
+describe('compás que no se puede leer', () => {
+  it('getMeterFraction que lanza → 4/4', () => {
+    const tune = {
+      lines: [{ staff: [{ voices: [[{ el_type: 'note', duration: 0.25, pitches: [{ pitch: 0 }] }]] }] }],
+      getMeterFraction: () => {
+        throw new Error('x');
+      },
+    };
+    expect(parseAbcTune(tune).meter).toBe('4/4');
+  });
+});
+
+describe('ABC: más bordes', () => {
+  it('armadura con bemoles, becuadro y tempo sin unidad', () => {
+    const r = parse('X:1\nL:1/4\nQ:100\nK:F\nB =B c|');
+    expect([notes(r), r.key, r.tempo]).toEqual(['70:4 71:4 72:4', -1, 100]);
+  });
+  it('líneas sin pentagrama o sin voces se ignoran', () => {
+    const tune = {
+      lines: [
+        {},
+        { staff: [{}] },
+        { staff: [{ voices: [[{ el_type: 'note', duration: 0.25, pitches: [{ pitch: 2 }] }]] }] },
+      ],
+    };
+    expect(parseAbcTune(tune).notes).toEqual([{ p: 64, d: 4 }]);
+  });
+  it('silencio invisible y nota sin alturas se ignoran; silencio corta la ligadura', () => {
+    const tune = {
+      lines: [
+        {
+          staff: [
+            {
+              voices: [
+                [
+                  { el_type: 'note', duration: 0.25, rest: { type: 'spacer' } },
+                  { el_type: 'note', duration: 0.25, pitches: [] },
+                  { el_type: 'note', duration: 0.25, pitches: [{ pitch: 0, startTie: {} }] },
+                  { el_type: 'note', duration: 0.25, rest: { type: 'rest' } },
+                  { el_type: 'note', duration: 0.25, pitches: [{ pitch: 0 }] },
+                ],
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    expect(parseAbcTune(tune).notes).toEqual([
+      { p: 60, d: 4 },
+      { p: null, d: 4 },
+      { p: 60, d: 4 },
+    ]);
+  });
+});

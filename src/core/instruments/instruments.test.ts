@@ -46,3 +46,8 @@ describe('clefFor (T-CLF-01)', () => {
     expect(clefFor(getInstrument('tuba'), [{ p: 80, d: 4 }], 0)).toBe('bass');
   });
 });
+
+describe('displayName con sostenido', () => {
+  it('♯ → #', () =>
+    expect(displayName({ ...getInstrument('piano'), name: 'Instrumento en Fa♯' })).toBe('Instrumento en Fa#'));
+});

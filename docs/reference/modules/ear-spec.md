@@ -788,6 +788,7 @@ type EarState =
 | A13 | Canción sin bajo distinguible | Solo se ofrece "Melodía" |
 | A14 | Eventos con MIDI 53-54 | Aparecen en melodía o bajo (deuda 4) |
 | A15 | Tempo real 180 bpm | Se pliega a 90; el usuario puede reajustar |
+| A15b | Tempo exacto de 150 bpm (negras de 0,4 s) | El intervalo cae en el límite negra/corchea y da 75 (igual que legacy); se corrige con "Reajustar ritmo" |
 | A16 | Abrir melodía y luego bajo del mismo análisis | Compases alineados (mismo origen) |
 | A17 | Instrumento actual = bajo y se abre la melodía | Cambia a piano |
 | A18 | Cambiar la velocidad durante la reproducción | Reinicia desde la posición actual a la nueva velocidad |
@@ -884,7 +885,7 @@ Scripts en `scripts/gen-audio-fixtures.mjs` (Node, sin dependencias de pago). Lo
 | T-CHD-01 | chordsFor | Tríadas sintéticas Do, Lam, Sol7, Rem7, Si dim | Nombres correctos |
 | T-CHD-02 | chordsFor | key < 0 | Nombres con bemoles |
 | T-CHD-03 | attachChords | Distancia > 4 | No se asigna |
-| T-TMP-01 | guessTempo | Clics a 60, 90, 120, 150 bpm | ±1 bpm |
+| T-TMP-01 | guessTempo | Clics a 60, 90, 120, 148 bpm | ±1 bpm (150 exacto: ver A15b) |
 | T-TMP-02 | guessTempo | 180 bpm | 90 |
 | T-KEY-01 | guessKey | Escalas mayores en 12 tónicas | Armadura correcta |
 | T-KEY-02 | guessKey | Escalas menores armónicas | Armadura de la relativa |

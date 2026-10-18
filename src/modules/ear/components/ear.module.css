@@ -1,0 +1,106 @@
+.ear {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.head h2 {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 22px;
+  margin: 0;
+}
+.tips {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+.privacy {
+  font-size: 12px;
+  color: var(--accent);
+}
+.wave {
+  width: 100%;
+  height: 76px;
+  display: block;
+  border-radius: 8px;
+  background: var(--bg);
+  touch-action: none;
+  cursor: pointer;
+}
+.select {
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--fg);
+  border-radius: 8px;
+  padding: 8px;
+  height: 38px;
+  font: inherit;
+}
+.time {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+.loop {
+  font-size: 12px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.file {
+  position: relative;
+}
+.file input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.msg {
+  font-size: 13px;
+  margin: 0;
+}
+.err {
+  color: var(--oor);
+}
+.ok {
+  color: var(--accent);
+}
+.progress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--accent);
+}
+.iconBtn {
+  width: 40px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.iconBtn svg {
+  width: 18px;
+  height: 18px;
+}
