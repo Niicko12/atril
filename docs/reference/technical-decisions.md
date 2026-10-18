@@ -2,7 +2,7 @@
 name: atril-technical-decisions
 status: in-progress
 created: 2026-10-18T12:11:33Z
-updated: 2026-10-18T12:51:10Z
+updated: 2026-10-18T13:03:42Z
 ---
 
 # Technical Decisions - Atril
@@ -144,7 +144,7 @@ La app es un **sitio 100 % estático**: HTML, JS, CSS, el modelo de Basic Pitch 
 
 | Herramienta | Uso |
 |---|---|
-| pnpm | Gestor de paquetes |
+| npm | Gestor de paquetes (ya instalado con Node; sin herramientas globales extra) |
 | ESLint (typescript-eslint, react-hooks, import) | Reglas de estructura (sección 17) |
 | Prettier | Formato |
 | Vitest | Unit tests del núcleo y de hooks |
@@ -1670,7 +1670,7 @@ script-src 'self' 'wasm-unsafe-eval';
 worker-src 'self' blob:;
 connect-src 'self';
 img-src 'self' data: blob:;
-media-src 'self' blob:;
+media-src 'self' blob: data:;
 style-src 'self' 'unsafe-inline';
 font-src 'self';
 frame-ancestors 'none';
@@ -1868,12 +1868,12 @@ Cada componente debe tener:
 
 Orden y bloqueo:
 
-1. `pnpm typecheck`
-2. `pnpm lint` (incluye reglas de estructura)
-3. `pnpm depcruise`
-4. `pnpm test --coverage` (umbrales 16.1)
-5. `pnpm build` + verificación de tamaño de bundle (15.2)
-6. `pnpm e2e` (Playwright) en PRs a `main`
+1. `npm run typecheck`
+2. `npm run lint` (incluye reglas de estructura)
+3. `npm run depcruise`
+4. `npm run test -- --coverage` (umbrales 16.1)
+5. `npm run build` + verificación de tamaño de bundle (15.2)
+6. `npm run e2e` (Playwright) en PRs a `main`
 7. Lighthouse CI sobre el preview de Vercel (advertencia, no bloqueo, en el MVP)
 
 Un PR no se fusiona si falla cualquiera de 1-6.
@@ -1979,17 +1979,26 @@ Correcciones menores detectadas al revisar legacy:
 ## 21. Próximos Pasos
 
 1. [x] /oden:init — estructura y decisiones iniciales
-2. [x] /oden:architect — arquitectura, schema, tipos, estructura de código y calidad (este documento)
-3. [ ] /oden:analyze — análisis competitivo (MuseScore, Flat.io, Noteflight, Soundslice/Moises)
-4. [ ] /oden:spec — specs de 800+ líneas por módulo:
-   - [ ] `editor` (store, historial, superficies de entrada, atajos)
-   - [ ] `notation-core` (teoría, compases, ABC, transposición) — incluye `score-view`
-   - [ ] `formats` (importadores y exportadores)
-   - [ ] `ear` (audio, Workers, análisis)
-   - [ ] `library` (guardado automático, Mis partituras, papelera, respaldo, durabilidad)
-   - [ ] `playback`
-5. [ ] /oden:plan — plan semana por semana (6-8 semanas)
-6. [ ] /oden:architect checklist — verificación pre-código
+2. [x] /oden:architect — arquitectura, persistencia local, tipos, estructura de código y calidad (este documento)
+3. [x] Análisis competitivo — `competitive-analysis.md` (MuseScore, Flat.io, Noteflight, Soundslice, Moises)
+4. [x] Specs de módulos en `docs/reference/modules/`:
+   - [x] `editor-spec.md`
+   - [x] `notation-core-spec.md` (incluye `score-view`)
+   - [x] `formats-spec.md` (incluye `import` y `export`)
+   - [x] `ear-spec.md`
+   - [x] `library-spec.md` (sin login)
+   - [x] `playback-spec.md`
+5. [x] Plan semana por semana — `implementation-plan.md`
+6. [x] Checklist pre-código — `docs/development/current/checklist-pre-codigo.md`
+7. [ ] Semana 1 del plan: fundaciones, port del núcleo con dorados, spikes de riesgo
+
+### 21.1 Cambios pendientes de aplicar en este documento al terminar los spikes de la semana 1
+
+| Tema | Dónde | Origen |
+|---|---|---|
+| JSZip → fflate (ADR-011) | 2.1 tabla Frontend | formats-spec 2.1 |
+| Basic Pitch: paquete npm o vendorizado; Worker o hilo principal | 2.1, 6.4, 19.2 RK3 | ear-spec 11.1-11.2 |
+| CSP final (¿TF.js necesita `unsafe-eval`?) | 13.5 | RK7 |
 
 ---
 
