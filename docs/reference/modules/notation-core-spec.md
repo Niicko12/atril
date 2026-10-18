@@ -2,7 +2,7 @@
 name: atril-notation-core-spec
 status: in-progress
 created: 2026-10-18T12:35:48Z
-updated: 2026-10-18T12:35:48Z
+updated: 2026-10-18T12:45:27Z
 ---
 
 # Spec: Módulo `notation-core` (+ `score-view`)
@@ -166,12 +166,13 @@ export { scoreRenderOptions } from './render-options';
 | corno | Corno en Fa | 7 | treble | 34 | 77 | brass | 60 | — | — | — |
 | trombon | Trombón | 0 | bass | 40 | 72 | brass | 57 | — | — | — |
 | tuba | Tuba | 0 | bass | 28 | 58 | brass | 58 | — | — | — |
+| flautadulce | Flauta dulce soprano | −12 | treble | 72 | 98 | flute | 74 | — | — | Suena una octava arriba de como se escribe |
 
 - `low`/`high` en **sonido real** (MIDI).
 - `GM` es el programa General MIDI base 0 (MusicXML usa base 1: `gm + 1`).
 - El orden de la tabla es el orden del selector.
 
-### 3.2 Candidato pendiente de aprobación (US-I06, *Should*)
+### 3.2 Flauta dulce soprano (US-I06, aprobada por el usuario 2026-10-18)
 
 | id | Nombre | transpose | clave | low | high | timbre | GM | nota |
 |---|---|---|---|---|---|---|---|---|
@@ -183,8 +184,7 @@ Es el **primer instrumento con transposición negativa**. Impacto revisado:
   emitiría la octava**. La spec de `formats` debe generalizar a negativos (registrado como requisito F-X1).
 - El aviso "Escrita una octava arriba…" usa el texto de la columna `nota`.
 
-> Se agrega al catálogo solo si el usuario lo aprueba. La spec y los tests se escriben para que agregar la fila no
-> requiera tocar código.
+> Incluida en la tabla 3.1. La spec de `formats` (4.3) ya generaliza `<transpose>` a valores negativos.
 
 ### 3.3 Tipo y funciones
 
@@ -801,13 +801,13 @@ Memoización: `buildAbc` se memoiza por `(notes, title, composer, key, meter, te
 
 ### 21.1 Tests dorados contra legacy
 
-Para cada combinación de: 18 instrumentos × 2 vistas × entradas de `tests/fixtures/scores/*.json` (ejemplos +
+Para cada combinación de: 19 instrumentos × 2 vistas × entradas de `tests/fixtures/scores/*.json` (ejemplos +
 casos C1-C17), se compara la salida de `buildAbc` (`abc` y `charMap`) con la de legacy.
 
 Diferencias permitidas, registradas en `tests/fixtures/golden/EXCEPTIONS.md`:
 - D1: alteración en continuaciones ligadas.
 - D2: `%` eliminado del título.
-- Cualquier fila nueva del catálogo (flauta dulce) no tiene dorado.
+- La flauta dulce no existe en legacy: no tiene dorado; se valida con tests propios (T-INS-04).
 
 ### 21.2 Unit
 
@@ -826,7 +826,8 @@ Diferencias permitidas, registradas en `tests/fixtures/golden/EXCEPTIONS.md`:
 | T-NAM-02 | noteName | usa ♯/♭ Unicode | sí |
 | T-INS-01 | getInstrument | "xyz" | piano |
 | T-INS-02 | displayName | "Saxofón alto en Mi♭" | "Saxofón alto en Mib" |
-| T-INS-03 | catálogo | 18 filas, ids únicos, low < high, cuerdas dentro del rango | sí |
+| T-INS-03 | catálogo | 19 filas, ids únicos, low < high, cuerdas dentro del rango | sí |
+| T-INS-04 | flauta dulce | Do5 real (72) se escribe Do4; armadura escrita = real | sí |
 | T-CLF-01 | clefFor | C11, C12, viola, tuba | bass, treble, alto, bass |
 | T-MEA-01 | splitDuration | Tabla 9.2 | Todos |
 | T-MEA-02 | toMeasures | Ejemplo 9.4 | Igual |
@@ -898,7 +899,7 @@ Diferencias permitidas, registradas en `tests/fixtures/golden/EXCEPTIONS.md`:
 | US-I03 Fuera de rango | 7.4, 13, 15 | T-SV-05/06, T-STA-01 |
 | US-I04 Tablatura | 14 | T-TAB-*, E2E-NC-03 |
 | US-I05 Nombres de notas | 6, 10.4 | T-ABC-05, E2E-NC-02 |
-| US-I06 Flauta dulce (pendiente) | 3.2 | T-INS-03 (al agregar) |
+| US-I06 Flauta dulce | 3.1, 3.2 | T-INS-03, T-INS-04 |
 | US-W05 Seleccionar tocando la partitura | 11, 12.4 | T-SV-03/04 |
 | US-P01 Ver qué nota suena | 13 | T-SV-07 |
 
@@ -925,7 +926,7 @@ Diferencias permitidas, registradas en `tests/fixtures/golden/EXCEPTIONS.md`:
 |---|---|---|
 | Q1 | ¿Fijar la clave del piano/voz al primer cálculo en vez de recalcularla con cada nota? | Mantener recálculo (legacy) en el MVP |
 | Q2 | D1: ¿alteración en continuación ligada siempre o solo con tablatura? | Siempre |
-| Q3 | ¿Agregar la flauta dulce (3.2)? | Pendiente de aprobación del usuario |
+| Q3 | ~~¿Agregar la flauta dulce?~~ | **Resuelta:** aprobada 2026-10-18 |
 | Q4 | ¿Mostrar el nombre de la tonalidad menor si la pieza está en menor (detección)? | No en el MVP |
 
 ---

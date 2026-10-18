@@ -2,7 +2,7 @@
 name: atril-formats-spec
 status: in-progress
 created: 2026-10-18T12:40:26Z
-updated: 2026-10-18T12:40:26Z
+updated: 2026-10-18T12:45:27Z
 ---
 
 # Spec: Módulo `formats` (+ `import` y `export`)
@@ -248,7 +248,7 @@ emitir <diatonic>, <chromatic>, y <octave-change> solo si octaves ≠ 0
 | Saxofón tenor Si♭ | 14 | −1 | −2 | −1 | ✅ igual |
 | Corno Fa | 7 | −4 | −7 | — | ✅ igual |
 | Guitarra / Bajo / Contrabajo | 12 | 0 | 0 | −1 | ✅ igual |
-| Flauta dulce (pendiente) | −12 | 0 | 0 | **+1** | ❌ legacy omitía la octava |
+| Flauta dulce soprano | −12 | 0 | 0 | **+1** | ❌ legacy omitía la octava |
 
 `DIATONIC` por tabla en lugar de `round(rest·7/12)` para no depender del redondeo de `Math.round` con negativos
 (−3.5 → −3).
@@ -472,7 +472,7 @@ setTimeout(() => URL.revokeObjectURL(url), 30 000)
 - Funciona en Chrome, Firefox, Safari de escritorio y Safari de iOS ≥ 13.
 - Legacy usaba la capacidad `downloads` del artifact; ya no existe fuera de Claude.
 
-### 10.2 Compartir (nuevo, *Should*, inspirado en la persona Marco)
+### 10.2 Compartir (F17, aprobado 2026-10-18; inspirado en la persona Marco)
 
 ```typescript
 export function canShareFiles(): boolean;     // navigator.canShare?.({ files: [archivoDePrueba] })
@@ -641,8 +641,8 @@ Búsqueda por subcadena, en este orden (la primera que coincida gana):
 | voice, voz, vocal, soprano | voz |
 | piano | piano |
 
-Sin coincidencia → `null` (se mantiene el instrumento actual). Si se aprueba la flauta dulce: agregar
-"recorder", "flauta dulce", "dulce" **antes** de "flaut".
+Sin coincidencia → `null` (se mantiene el instrumento actual). Flauta dulce (aprobada): "recorder", "flauta dulce",
+"dulce" → `flautadulce`, evaluadas **antes** de "flaut".
 
 ### 12.8 `pickMeter(num, den)`
 
@@ -916,7 +916,7 @@ Construcción de strings con arreglos y `join('')` (no concatenación en bucle d
 
 | ID | Función | Comparación |
 |---|---|---|
-| G-FMT-01 | toMusicXML | 18 instrumentos × fixtures; igual salvo D1 (`<harmony>`), D2 (relleno del último compás), D3 (negativos) |
+| G-FMT-01 | toMusicXML | 19 instrumentos × fixtures (sin dorado para flauta dulce); igual salvo D1 (`<harmony>`), D2 (relleno del último compás), D3 (negativos) |
 | G-FMT-02 | toMidi | Bytes idénticos para los mismos fixtures |
 | G-FMT-03 | parseMidi | Mismo `notes`, `tempo`, `meter`, `key` sobre `tests/fixtures/files/*.mid` sin running status tras meta |
 | G-FMT-04 | parseMusicXML | Mismo resultado en archivos simples (1 voz, sin anacrusa ni acordes) |
@@ -946,7 +946,7 @@ devDependency).
 | T-MID-08 | SMPTE, cabecera falsa, archivo truncado | Mensajes 13.1 |
 | T-MXI-01 | X1-X9 | Según tabla |
 | T-MXI-02 | 12.1 validaciones | Mensajes exactos |
-| T-MXI-03 | Ida y vuelta `toMusicXML → parseMusicXML` 18 instrumentos | Mismas notas (sonido real), key, meter, tempo |
+| T-MXI-03 | Ida y vuelta `toMusicXML → parseMusicXML` 19 instrumentos | Mismas notas (sonido real), key, meter, tempo |
 | T-MXI-04 | guessInstrument tabla 12.7 | Todos |
 | T-TXT-01 | decodeText UTF-8, UTF-8 BOM, UTF-16LE, UTF-16BE, ISO-8859-1 | Texto con "Canción" correcto |
 | T-ABC-I-01 | X22-X25 | Según tabla |
@@ -987,7 +987,7 @@ devDependency).
 ### 22.5 Verificación manual con MuseScore Studio (gratis)
 
 Antes de cerrar la épica, abrir en MuseScore Studio 4 el MusicXML de: piano, clarinete, saxofón alto, saxofón
-tenor, guitarra (con tablatura), corno y (si se aprueba) flauta dulce. Criterios: sin avisos de archivo dañado,
+tenor, guitarra (con tablatura), corno y flauta dulce. Criterios: sin avisos de archivo dañado,
 "Concert pitch" muestra la altura real correcta, los cifrados aparecen como acordes. Registrar resultado en
 `docs/development/current/`.
 
@@ -1044,7 +1044,7 @@ tenor, guitarra (con tablatura), corno y (si se aprueba) flauta dulce. Criterios
 
 | ID | Pregunta | Propuesta por defecto |
 |---|---|---|
-| Q1 | ¿Agregar la flauta dulce? (afecta 4.3 y 12.7) | Pendiente del usuario; la spec ya lo soporta |
+| Q1 | ~~¿Agregar la flauta dulce?~~ | **Resuelta:** aprobada 2026-10-18 |
 | Q2 | ¿Emitir `<accidental>` explícito en MusicXML? | No (los programas lo calculan) |
 | Q3 | ¿Pista de acordes en el MIDI? | No en el MVP |
 | Q4 | ¿PDF en A4 o Carta? | Carta (legacy); considerar A4 por defecto según idioma del navegador `es-*` excepto `es-MX`/`es-US` |

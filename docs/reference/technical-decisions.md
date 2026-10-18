@@ -2,7 +2,7 @@
 name: atril-technical-decisions
 status: in-progress
 created: 2026-10-18T12:11:33Z
-updated: 2026-10-18T12:36:00Z
+updated: 2026-10-18T12:45:27Z
 ---
 
 # Technical Decisions - Atril
@@ -121,7 +121,7 @@ manteniendo la paridad de funcionalidades y corrigiendo la deuda técnica detect
 | Plataforma | Supabase | Postgres + Auth + Storage gestionados; RLS evita escribir un servidor |
 | Base de datos | PostgreSQL 15 (Supabase) | JSONB para las notas, constraints y triggers |
 | Auth | Supabase Auth: enlace mágico por email + Google OAuth | Sin contraseñas que recordar; Google es común en el público objetivo |
-| Storage | Bucket privado `audio` | Guardar audios de "De oído" para reabrirlos (opcional, ver 3.2) |
+| Storage | Bucket privado `audio` | Guardar audios de "De oído" para reabrirlos (opcional, ver 3.3) |
 | Lógica de servidor | Ninguna (solo RLS, constraints y triggers) | R2; menos superficie de ataque |
 
 ### 2.3 Hosting
@@ -192,7 +192,7 @@ Mitigaciones del plan gratuito de Supabase:
 | ID | Feature | Prioridad | Paridad legacy | Cambios respecto a legacy |
 |---|---|---|---|---|
 | F01 | Editor monofónico: piano, diapasón, Do-Re-Mi, teclado de computadora | Must | Sí | Deshacer completo (F10) |
-| F02 | 18 instrumentos con transposición, rango y tablatura | Must | Sí | — |
+| F02 | 19 instrumentos con transposición, rango y tablatura | Must | Sí | + Flauta dulce soprano (aprobada 2026-10-18) |
 | F03 | Vista "para el instrumento" / "sonido real", nombres de notas | Must | Sí | — |
 | F04 | Reproducción sintetizada por familia, resaltado de nota en curso | Must | Sí | Motor en módulo propio |
 | F05 | Importar MusicXML/.mxl/MIDI/ABC | Must | Sí | Corrige deuda 2, 3, 9 |
@@ -202,12 +202,43 @@ Mitigaciones del plan gratuito de Supabase:
 | F09 | Cuentas (enlace mágico + Google) y "Mis partituras" en la nube | Must | No (era localStorage) | Corrige deuda 1 |
 | F10 | Deshacer/rehacer completo (notas + metadatos) | Must | Parcial | Corrige deuda 8 |
 | F11 | Borrador local automático (sin cuenta) | Must | Sí | IndexedDB en vez de localStorage |
-| F12 | Ejemplos de dominio público | Should | Sí | — |
+| F12 | Ejemplos de dominio público | Should | Sí | + "La cucaracha" (tradicional mexicana, aprobado 2026-10-18) |
 | F13 | Enlaces a sitios de partituras | Should | Sí | — |
 | F14 | Guardar el audio original junto a la partitura | Could | No | Storage; solo si sobra tiempo |
 | F15 | Aviso al recortar notas en "Mover todo" | Must | No | Corrige deuda 7 |
+| F16 | La partitura sigue al audio original en "De oído" (US-E09) | Should | No | Aprobado 2026-10-18 |
+| F17 | Compartir PDF/imagen con el menú del sistema (WhatsApp) | Should | No | Aprobado 2026-10-18 |
 
-### 3.2 Criterio para F14
+### 3.2 Ejemplos incluidos (F12)
+
+Formato `MIDI:duración` (duración en semicorcheas, `r` = silencio), igual que `seq()` de legacy. Van en
+`src/core/score/samples.ts`.
+
+| Título | Compositor | Tonalidad | Compás | Tempo | Origen |
+|---|---|---|---|---|---|
+| Himno de la alegría | L. van Beethoven | Do | 4/4 | 100 | Legacy |
+| Estrellita | Tradicional | Do | 4/4 | 96 | Legacy |
+| Escala de Sol mayor | Ejercicio | Sol | 4/4 | 80 | Legacy |
+| La cucaracha | Tradicional mexicana | Sol (1) | 4/4 | 120 | Nuevo (aprobado 2026-10-18) |
+
+"La cucaracha" — **transcripción propia** de la melodía tradicional (dominio público). No se copió ninguna
+transcripción publicada. La anacrusa ("la cu-ca-") se escribe dentro del compás porque el MVP no soporta anacrusa.
+**Verificar al oído en la app antes de publicarla** (tarea en el plan):
+
+```
+62:2 62:2 62:2 67:6 71:4
+62:2 62:2 62:2 67:6 71:4
+67:2 67:2 66:2 66:2 64:2 64:2 62:4
+62:2 62:2 62:2 66:6 69:4
+62:2 62:2 62:2 66:6 69:4
+69:2 69:2 67:2 67:2 66:2 66:2 67:4
+67:16
+```
+
+Se descartó "Cielito lindo": su autor (Quirino Mendoza y Cortés) murió en 1957 y en México los derechos patrimoniales
+duran 100 años tras la muerte del autor.
+
+### 3.3 Criterio para F14
 
 F14 entra solo si al terminar la semana 5 el resto de Must está aprobado. El schema (tabla `audio_sources`) se crea
 desde el inicio para no migrar después, pero la UI queda oculta tras el flag `features.audioUpload`.
@@ -361,7 +392,7 @@ atril/
 │   │   │   ├── keys.ts           # MAJ, MIN, ABCKEY
 │   │   │   └── index.ts
 │   │   ├── instruments/
-│   │   │   ├── catalog.ts        # INSTR (18)
+│   │   │   ├── catalog.ts        # INSTR (19)
 │   │   │   ├── clef.ts           # clefFor
 │   │   │   └── index.ts
 │   │   ├── rhythm/
@@ -2016,7 +2047,7 @@ parseMusicXML, parseAbcTune, spell, toMeasures}` cuando existe `module`. El scri
 
 1. Extrae el bloque `<script>` del núcleo musical de `legacy/index.html`.
 2. Lo evalúa en un `vm` de Node con `module` definido.
-3. Para un conjunto de partituras de entrada (ejemplos + casos borde de `tests/fixtures/scores/*.json`) y los 18
+3. Para un conjunto de partituras de entrada (ejemplos + casos borde de `tests/fixtures/scores/*.json`) y los 19
    instrumentos × 2 vistas, guarda las salidas de `buildAbc`, `toMusicXML`, `toMidi` (hex) y `spell`.
 4. Los tests de `src/core` comparan la salida del código portado con estos dorados.
 
@@ -2029,7 +2060,7 @@ motivo; cualquier otra diferencia hace fallar el test.
 - **toMeasures:** nota que cruza 1 y 2 barras; duraciones 5, 7, 9, 11, 13, 15 (puntillos y ligaduras); compases
   6/8 y 12/8; partitura vacía.
 - **buildAbc:** accidentales dentro de compás (se repiten tras la barra); `charMap` apunta al índice correcto con
-  nombres y acordes activos; transposición escrita para los 18 instrumentos; clef auto.
+  nombres y acordes activos; transposición escrita para los 19 instrumentos; clef auto.
 - **MusicXML export:** valida contra XSD 3.1 (test con `xmllint` en CI); `<transpose>` correcto para Si♭, Mi♭,
   Fa, tenor y octava.
 - **MIDI export → import:** ida y vuelta conserva tonos y duraciones.

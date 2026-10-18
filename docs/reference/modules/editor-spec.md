@@ -736,7 +736,7 @@ Una redonda con puntillo (24) en 4/4 se escribe como redonda ligada a blanca en 
 |---|---|---|---|
 | Título | `input text`, `autocomplete=off` | 0-120 caracteres; vacío se guarda como "Sin título" al exportar/guardar, no al escribir | `setMeta({title})` con debounce visual de 250 ms para el re-render |
 | Compositor | `input text` | 0-120 | Ídem |
-| Instrumento | `select` con los 18 nombres | Debe existir en el catálogo | `setMeta({instrumentId})` |
+| Instrumento | `select` con los 19 nombres | Debe existir en el catálogo | `setMeta({instrumentId})` |
 | Tonalidad (sonido real) | `select` de −6 a 6: "Sol mayor / Mi menor" | −6..6 | `setMeta({key})` |
 | Compás | `select`: "4/4 (compasillo, C)", 3/4, 2/4, 6/8, 3/8, 12/8 | Uno de los 6 | `setMeta({meter})` |
 | Tempo ♩ = | `input number` 30-240, `inputmode=numeric` | Se aplica en `change` (al salir), no en cada tecla. Vacío o no numérico → 100. Fuera de rango → recorta a 30/240 y corrige el campo | `setMeta({tempo})` |

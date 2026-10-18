@@ -485,7 +485,7 @@ Leyenda: ✅ sí · ⚠️ parcial o limitado · ❌ no · ? no verificado · �
 
 | Funcionalidad | Atril MVP | MuseScore | Flat | Noteflight | Soundslice | Moises |
 |---|---|---|---|---|---|---|
-| Elegir instrumento → parte escrita correcta | ✅ (18) | ✅ | ✅ | ✅ | ? | ❌ |
+| Elegir instrumento → parte escrita correcta | ✅ (19) | ✅ | ✅ | ✅ | ? | ❌ |
 | Interruptor sonido real / escrito | ✅ | ✅ | ✅ | ✅ ? | ? | ❌ |
 | Aviso de notas fuera de rango | ✅ | ✅ | ✅ ? | ✅ ? | ? | ❌ |
 | Transportar toda la pieza por semitonos | ✅ | ✅ | ✅ | ✅ | ✅ ? | ✅ (audio) |
@@ -973,7 +973,7 @@ Escala: Alcance = usuarios afectados por trimestre (estimado sobre 1 000 usuario
 | Agregar 1 ejemplo latino de dominio público | Nuevo | Despreciable |
 | Grabar con micrófono | Candidato fuerte post-MVP | Ninguno en MVP |
 
-> Estos cambios requieren confirmación del usuario antes de actualizar `technical-decisions.md` (sección 3).
+> **Aprobados por el usuario el 2026-10-18** junto con el botón Compartir (F17). Reflejados en `technical-decisions.md` sección 3 (F02, F12, F16, F17).
 
 ---
 
