@@ -16,6 +16,13 @@ module.exports = {
       from: { path: '^src/workers' },
       to: { path: '^src/(modules|infra|app|shared)' },
     },
+    {
+      name: 'app-por-index',
+      comment: 'app solo importa el index.ts de cada módulo (technical-decisions 9.4).',
+      severity: 'error',
+      from: { path: '^src/app' },
+      to: { path: '^src/modules/[^/]+/.+', pathNot: '^src/modules/[^/]+/index\\.ts$' },
+    },
     { name: 'infra', severity: 'error', from: { path: '^src/infra' }, to: { path: '^src/(modules|app)' } },
     { name: 'shared', severity: 'error', from: { path: '^src/shared' }, to: { path: '^src/(modules|infra|app)' } },
     {
