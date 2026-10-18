@@ -2,6 +2,10 @@
 // Uso: npm run fixtures:legacy   →   tests/fixtures/golden/core.json
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import vm from 'node:vm';
+import { DOMParser } from '@xmldom/xmldom';
+import abcjsModule from 'abcjs';
+
+const abcjs = abcjsModule.default ?? abcjsModule;
 
 const html = readFileSync(new URL('../legacy/index.html', import.meta.url), 'utf8');
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
@@ -56,6 +60,41 @@ for (const [name, S] of Object.entries(scores)) {
   }
 }
 
+// Importador MusicXML de legacy sobre sus propias exportaciones (dorado de parseMusicXML).
+const musicxmlImport = {};
+for (const [k, xml] of Object.entries(musicxml)) {
+  try {
+    const r = L.parseMusicXML(xml, DOMParser);
+    musicxmlImport[k] = { notes: r.notes, key: r.key, meter: r.meter, tempo: r.tempo };
+  } catch (e) {
+    musicxmlImport[k] = { error: String(e.message) };
+  }
+}
+
+// Importador MIDI de legacy sobre sus propias exportaciones (dorado de parseMidi).
+const midiImport = {};
+for (const [k, hex] of Object.entries(midi)) {
+  const bytes = Buffer.from(hex, 'hex');
+  try {
+    const r = L.parseMidi(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length));
+    midiImport[k] = { notes: r.notes, key: r.key, meter: r.meter, tempo: r.tempo, title: r.title };
+  } catch (e) {
+    midiImport[k] = { error: String(e.message) };
+  }
+}
+
+// Importador ABC de legacy sobre sus propias salidas (vista escrita, sin nombres).
+const abcImport = {};
+for (const [k, v] of Object.entries(abc)) {
+  if (!k.endsWith('|written|false')) continue;
+  try {
+    const r = L.parseAbcTune(abcjs.parseOnly(v.abc)[0]);
+    abcImport[k] = { notes: r.notes, key: r.key, meter: r.meter, tempo: r.tempo, title: r.title };
+  } catch (e) {
+    abcImport[k] = { error: String(e.message) };
+  }
+}
+
 const spell = {};
 for (let f = -7; f <= 7; f++)
   for (let m = 0; m <= 127; m++) {
@@ -87,7 +126,7 @@ const instruments = L.INSTR.map((i) => ({
 }));
 
 mkdirSync(new URL('../tests/fixtures/golden/', import.meta.url), { recursive: true });
-const out = { generatedFrom: 'legacy/index.html', scores, instruments, abc, musicxml, midi, spell, measures, normF };
+const out = { generatedFrom: 'legacy/index.html', scores, instruments, abc, musicxml, musicxmlImport, midi, midiImport, abcImport, spell, measures, normF };
 writeFileSync(new URL('../tests/fixtures/golden/core.json', import.meta.url), JSON.stringify(out));
 console.log(
   `✅ Dorados: ${Object.keys(abc).length} ABC, ${Object.keys(spell).length} spell, ${Object.keys(measures).length} medidas`,

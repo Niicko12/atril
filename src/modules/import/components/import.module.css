@@ -1,0 +1,91 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.block h3 {
+  font-size: 14px;
+  margin: 0;
+  font-weight: 600;
+}
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+.label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.links a {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+.links a:hover {
+  border-color: var(--accent);
+}
+.input {
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--fg);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font: inherit;
+}
+.code {
+  width: 100%;
+  min-height: 120px;
+  font:
+    12px ui-monospace,
+    Menlo,
+    Consolas,
+    monospace;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 10px;
+  resize: vertical;
+}
+.file {
+  position: relative;
+  align-self: flex-start;
+}
+.file input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.err {
+  color: var(--oor);
+  font-size: 13px;
+  margin: 0;
+}
+.warnings {
+  background: var(--accent-soft);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.warnings ul {
+  margin: 0;
+  padding-left: 18px;
+}

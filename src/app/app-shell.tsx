@@ -26,8 +26,10 @@ import { buttonStyles as b } from '@/shared/components/overlay';
 import { useArmed } from '@/shared/hooks/use-armed';
 import { Toast } from '@/shared/toast';
 import styles from './app-shell.module.css';
+import { ImportWarnings, importStrings as I, loadFindOverlay } from '@/modules/import';
 
 const LibraryOverlay = lazy(loadLibraryOverlay);
+const FindOverlay = lazy(loadFindOverlay);
 
 function togglePlay(): void {
   if (playbackEngine.isPlaying) return playbackEngine.stopAll();
@@ -49,17 +51,19 @@ async function newScore(): Promise<void> {
 /** Layout de atril (editor-spec 2) con biblioteca y guardado automático (library-spec). */
 export function AppShell() {
   const [library, setLibrary] = useState(false);
+  const [find, setFind] = useState(false);
   const enter = useNoteInput();
   const enterFromKeyboard = useCallback(
     (midi: number) => enter(midi, document.querySelector<HTMLElement>(`[data-midi="${midi}"]`)),
     [enter],
   );
-  const isOverlayOpen = useCallback(() => library, [library]);
+  const isOverlayOpen = useCallback(() => library || find, [library, find]);
   useKeyboardShortcuts({ enter: enterFromKeyboard, togglePlay, isOverlayOpen });
   useEffect(() => startAutosave(), []);
   const { otherTabOpen, otherTabSaved } = useTabGuard();
   const fresh = useArmed(() => void newScore());
   const closeLibrary = useCallback(() => setLibrary(false), []);
+  const closeFind = useCallback(() => setFind(false), []);
 
   return (
     <>
@@ -70,6 +74,9 @@ export function AppShell() {
             <p>Escribe, escucha y transporta partituras para tu instrumento</p>
           </div>
           <div className={styles.actions}>
+            <button type="button" className={`${b.btn} ${b.primary}`} onClick={() => setFind(true)}>
+              {I.find}
+            </button>
             <button type="button" className={b.btn} onClick={() => setLibrary(true)}>
               {L.library}
             </button>
@@ -84,6 +91,7 @@ export function AppShell() {
         )}
         <ScoreMetaForm />
         <ViewBar />
+        <ImportWarnings />
         <ScoreSheet />
         <div className={styles.statusRow}>
           <ScoreStatus />
@@ -93,6 +101,11 @@ export function AppShell() {
         <Toast />
       </main>
       <InputDock />
+      {find && (
+        <Suspense fallback={null}>
+          <FindOverlay onClose={closeFind} />
+        </Suspense>
+      )}
       {library && (
         <Suspense fallback={null}>
           <LibraryOverlay onClose={closeLibrary} />
