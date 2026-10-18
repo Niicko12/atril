@@ -1,18 +1,36 @@
+import { keyName } from '@/core';
 import { DurationTools } from './duration-tools';
+import { Fretboard } from './fretboard';
+import { ModeSwitch } from './mode-switch';
+import { NameButtons } from './name-buttons';
 import { PianoKeyboard } from './piano-keyboard';
 import { useNoteInput } from '../hooks/use-note-input';
+import { useModeStore } from '@/shared/prefs/mode.store';
+import { useScoreStore } from '../store/score.store';
+import { selectInstrument } from '../store/selectors';
 import { S } from '../strings';
 import styles from './dock.module.css';
 
-/** Dock fijo inferior: herramientas + superficie de entrada (editor-spec 2). Diapasón y Do-Re-Mi: semana 3. */
+/** Dock fijo inferior: herramientas, modo de entrada y superficie activa (editor-spec 2, 8). */
 export function InputDock() {
   const enter = useNoteInput();
+  const { mode, setMode } = useModeStore();
+  const instrument = useScoreStore(selectInstrument);
+  const key = useScoreStore((s) => s.score.key);
+  const hint =
+    mode === 'piano'
+      ? S.hintPiano
+      : mode === 'fret'
+        ? S.hintFret((instrument.strings ? instrument : { name: 'guitarra' }).name.toLowerCase())
+        : S.hintNames(keyName(key));
   return (
     <div className={styles.dock}>
       <DurationTools />
-      <div className={styles.hint}>{S.hintPiano}</div>
+      <ModeSwitch mode={mode} hint={hint} onChange={setMode} />
       <div className={styles.surface}>
-        <PianoKeyboard onNote={enter} />
+        {mode === 'piano' && <PianoKeyboard onNote={enter} />}
+        {mode === 'fret' && <Fretboard instrument={instrument} fifths={key} onNote={enter} />}
+        {mode === 'names' && <NameButtons onNote={enter} />}
       </div>
     </div>
   );

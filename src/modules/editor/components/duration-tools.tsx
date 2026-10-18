@@ -1,8 +1,9 @@
+import { usePlayback } from '@/modules/playback';
 import { useScoreStore } from '../store/score.store';
-import { selectCanRedo, selectCanUndo, selectHasNotes } from '../store/selectors';
+import { selectCanRedo, selectCanUndo, selectHasNotes, selectInstrument } from '../store/selectors';
 import { S } from '../strings';
 import type { BaseDuration } from '../types';
-import { DeleteIcon, DotIcon, NoteIcon, RestIcon, UndoIcon } from './note-icon';
+import { DeleteIcon, DotIcon, NoteIcon, PlayIcon, RestIcon, UndoIcon } from '@/shared/components/icons';
 import styles from './dock.module.css';
 
 const DURATIONS: readonly BaseDuration[] = [16, 8, 4, 2, 1];
@@ -14,9 +15,31 @@ export function DurationTools() {
   const canRedo = useScoreStore(selectCanRedo);
   const hasNotes = useScoreStore(selectHasNotes);
   const { setDuration, toggleDot, addNote, undo, redo, deleteNote } = useScoreStore.getState();
+  const { playing, toggle } = usePlayback();
+  const togglePlay = () => {
+    const s = useScoreStore.getState();
+    toggle({
+      notes: s.score.notes,
+      fromIndex: Math.max(0, s.selection),
+      tempo: s.score.tempo,
+      timbre: selectInstrument(s).timbre,
+    });
+  };
 
   return (
     <div className={styles.tools}>
+      <button
+        type="button"
+        className={styles.play}
+        disabled={!hasNotes}
+        aria-label={playing ? S.stop : S.play}
+        aria-pressed={playing}
+        title={`${playing ? S.stop : S.play} (espacio)`}
+        onClick={togglePlay}
+      >
+        <PlayIcon playing={playing} />
+      </button>
+      <div className={styles.sep} />
       <div className={styles.group} role="group" aria-label={S.durationGroup}>
         {DURATIONS.map((u, i) => (
           <button

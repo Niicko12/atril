@@ -1,7 +1,7 @@
 import type { Cursor, Note, ScoreMeta } from '@/core';
 
 export type { Cursor } from '@/core';
-export type EditorMode = 'piano' | 'fret' | 'names';
+export type { EditorMode } from '@/shared/prefs/mode.store';
 export type BaseDuration = Cursor['base'];
 
 export interface Snapshot {

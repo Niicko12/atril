@@ -68,3 +68,22 @@
   margin: 0 auto;
   padding: 0 12px 10px;
 }
+.play {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 0;
+  color: var(--accent-fg);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.play svg {
+  width: 20px;
+  height: 20px;
+}
+.play:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

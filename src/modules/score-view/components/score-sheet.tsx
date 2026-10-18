@@ -4,7 +4,7 @@ import { buildAbc, measureCount, meterOf, outOfRangeIndices } from '@/core';
 import { selectEffectiveView, selectInstrument, useScoreStore } from '@/modules/editor';
 import { playbackEngine } from '@/modules/playback';
 import { useAbcRender } from '../hooks/use-abc-render';
-import { useHighlights } from '../hooks/use-highlights';
+import { useHighlights, usePlayHighlight } from '../hooks/use-highlights';
 import { scoreRenderOptions, showsTab } from '../render-options';
 import { S } from '../strings';
 import styles from './score-sheet.module.css';
@@ -43,6 +43,7 @@ export function ScoreSheet() {
   );
   const { noteElements, tick, error } = useAbcRender(target, built.abc, built.charMap, options);
   useHighlights(noteElements, tick, selection, outOfRange);
+  usePlayHighlight(noteElements);
 
   const label = S.sheetLabel(score.title, instrument.name, measureCount(score.notes, meterOf(score.meter)));
   return (

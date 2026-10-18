@@ -43,7 +43,7 @@ export default tseslint.config(
   },
   { files: ['src/workers/**/*.ts'], rules: { 'max-lines': lines(150) } },
   {
-    files: ['src/**/*.test.{ts,tsx}'],
+    files: ['src/**/*.test.{ts,tsx}', 'src/**/*.test-helper.ts'],
     rules: {
       'max-lines': lines(400),
       'max-lines-per-function': 'off',
