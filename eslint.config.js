@@ -29,6 +29,7 @@ export default tseslint.config(
     files: ['src/**/components/**/*.tsx', 'src/app/**/*.tsx'],
     rules: { 'max-lines': lines(200), 'max-lines-per-function': 'off' },
   },
+  { files: ['src/spikes/**/*.ts'], rules: { 'max-lines-per-function': 'off', complexity: 'off' } },
   { files: ['src/**/hooks/**/*.ts'], rules: { 'max-lines': lines(100) } },
   { files: ['src/**/services/**/*.ts'], rules: { 'max-lines': lines(300) } },
   { files: ['src/**/store/**/*.ts'], rules: { 'max-lines': lines(250) } },

@@ -5,7 +5,19 @@ import { fileURLToPath, URL } from 'node:url';
 export default defineConfig({
   plugins: [react()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  build: { target: 'es2022', sourcemap: true, chunkSizeWarningLimit: 800 },
+  build: {
+    target: 'es2022',
+    sourcemap: true,
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        // Spike temporal de la semana 1 (se elimina al decidir; ver implementation-plan 1.10).
+        spikeBasicPitch: fileURLToPath(new URL('./spike/basic-pitch.html', import.meta.url)),
+      },
+    },
+  },
+  worker: { format: 'es' },
   test: {
     globals: true,
     environment: 'node',

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Prueba Basic Pitch</title>
+    <style>
+      body { font: 15px system-ui, sans-serif; margin: 0; padding: 16px; background: #f7f8f6; color: #1b2220; }
+      button { font: inherit; padding: 12px 14px; margin: 0 8px 8px 0; border-radius: 8px; border: 1px solid #8e1b3b; background: #8e1b3b; color: #fff; }
+      button.alt { background: #fff; color: #8e1b3b; }
+      pre { white-space: pre-wrap; word-break: break-word; background: #fff; border: 1px solid #cdd5d1; border-radius: 8px; padding: 12px; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <h1>Prueba de Basic Pitch</h1>
+    <p>Toca primero «En segundo plano». Cuando termine, toca «En la página». Luego copia el texto del recuadro.</p>
+    <button id="worker" type="button">1. En segundo plano</button>
+    <button id="main" class="alt" type="button">2. En la página</button>
+    <pre id="out"></pre>
+    <script type="module" src="/src/spikes/basic-pitch/main.ts"></script>
+  </body>
+</html>
