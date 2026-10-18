@@ -1,0 +1,46 @@
+.sheet {
+  position: relative;
+}
+.paper {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 3px;
+  padding: 14px 12px 10px;
+  min-height: 230px;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.06),
+    0 10px 30px -14px rgba(20, 30, 28, 0.35);
+  overflow: hidden;
+}
+.paper svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.paper :global(.sel),
+.paper :global(.sel *) {
+  fill: var(--mark) !important;
+  stroke: var(--mark);
+}
+.paper :global(.play),
+.paper :global(.play *) {
+  fill: var(--mark) !important;
+}
+.paper :global(.oor),
+.paper :global(.oor *) {
+  fill: var(--oor) !important;
+}
+.empty {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22px;
+  text-align: center;
+  color: #6b6f6c;
+  font-size: 14px;
+  pointer-events: none;
+}
+.error {
+  color: var(--oor);
+  font-size: 14px;
+}

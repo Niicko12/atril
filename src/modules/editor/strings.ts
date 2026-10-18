@@ -1,0 +1,17 @@
+export const S = {
+  durations: { 16: 'Redonda', 8: 'Blanca', 4: 'Negra', 2: 'Corchea', 1: 'Semicorchea' } as Record<number, string>,
+  dot: 'Puntillo',
+  rest: 'Silencio',
+  undo: 'Deshacer',
+  redo: 'Rehacer',
+  del: 'Borrar',
+  play: 'Reproducir',
+  nothingToUndo: 'Nada que deshacer',
+  nothingToRedo: 'Nada que rehacer',
+  maxNotes: 'Llegaste al máximo de 3 000 notas.',
+  atRangeLimit: 'Esa nota ya está en el límite del rango.',
+  clipped: (n: number) => `${n} ${n === 1 ? 'nota quedó' : 'notas quedaron'} en el límite del rango (La0–Do8).`,
+  pianoLabel: 'Teclado de piano',
+  durationGroup: 'Duración',
+  hintPiano: 'Desliza para ver más octavas',
+} as const;

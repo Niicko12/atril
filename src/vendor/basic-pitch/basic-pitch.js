@@ -3,6 +3,269 @@
 // Requiere globalThis.tf (TensorFlow.js) antes de llamar a installBasicPitch().
 /* eslint-disable */
 export function installBasicPitch() {
-(()=>{var tt=Object.create;var v=Object.defineProperty;var et=Object.getOwnPropertyDescriptor;var nt=Object.getOwnPropertyNames;var rt=Object.getPrototypeOf,it=Object.prototype.hasOwnProperty;var ot=(e,t,r)=>t in e?v(e,t,{enumerable:!0,configurable:!0,writable:!0,value:r}):e[t]=r;var st=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports);var at=(e,t,r,i)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of nt(t))!it.call(e,n)&&n!==r&&v(e,n,{get:()=>t[n],enumerable:!(i=et(t,n))||i.enumerable});return e};var ut=(e,t,r)=>(r=e!=null?tt(rt(e)):{},at(t||!e||!e.__esModule?v(r,"default",{value:e,enumerable:!0}):r,e));var H=(e,t,r)=>ot(e,typeof t!="symbol"?t+"":t,r);var k=st((_t,$)=>{$.exports=globalThis.tf});var b=ut(k());var L={contours:"Identity",onsets:"Identity_2",frames:"Identity_1"},z=1,_=22050,C=256,mt=Math.floor(_/C),lt=2,V=_*lt-C,j=30,W=Math.floor(j/2),D=j*C,ct=V-D,P=class{constructor(t){H(this,"model");if(D%2!==0)throw new Error(`OVERLAP_LENGTH_FRAMES is not divisible by 2! Is ${D}`);this.model=typeof t=="string"?b.loadGraphModel(t):t}adjustNoteStart(t,r){return t.map(i=>({startTimeSeconds:i.startTimeSeconds+r,durationSeconds:i.durationSeconds,pitch_midi:i.pitchMidi,amplitude:i.amplitude,pitchBends:i.pitchBends}))}async evaluateSingleFrame(t,r){let i=await this.model,n=b.slice(t,r,1),o=i.execute(n,[L.frames,L.onsets,L.contours]);return[o[0],o[1],o[2]]}async prepareData(t){let r=b.concat1d([b.zeros([Math.floor(D/2)],"float32"),b.tensor(t)]);return[b.expandDims(b.signal.frame(r,V,ct,!0,0),-1),t.length]}unwrapOutput(t){let r=t;r=t.slice([0,W,0],[-1,t.shape[1]-2*W,-1]);let i=r.shape;return r.reshape([i[0]*i[1],i[2]])}async evaluateModel(t,r,i){let n;if(t instanceof Float32Array)n=t;else{if(t.sampleRate!==_)throw new Error(`Input audio buffer is not at correct sample rate! Is ${t.sampleRate}. Should be ${_}`);if(t.numberOfChannels!==z)throw new Error(`Input audio buffer is not mono! Number of channels is ${t.numberOfChannels}. Should be ${z}`);n=t.getChannelData(0)}let[o,p]=await this.prepareData(n),m=Math.floor(p*(mt/_)),h=0;for(let d=0;d<o.shape[0];++d){i(d/o.shape[0]);let[f,T,M]=await this.evaluateSingleFrame(o,d),E=this.unwrapOutput(f),A=this.unwrapOutput(T),S=this.unwrapOutput(M),l=E.shape[0];if(!(h>=m)){if(l+h>=m){let x=m-h;E=E.slice([0,0],[x,-1]),A=A.slice([0,0],[x,-1]),S=S.slice([0,0],[x,-1])}h+=l,r(await E.array(),await A.array(),await S.array())}}i(1)}};var R=21,y=22050,X=2,w=256,ht=Math.floor(y/w),Y=ht*X,pt=y*X-w,dt=w/y*(Y-pt/w)+.0018,q=87,ft=3;var bt=88,yt=bt*ft,Q=e=>12*(Math.log2(e)-Math.log2(440))+69;var B=e=>e*w/y-dt*Math.floor(e/Y);function Tt(e){return e.length===0?null:e.reduce((t,r,i)=>e[t]>r?t:i,-1)}function Mt(e,t){let r=[],i=[];for(let n=0;n<e.length;n++)for(let o=0;o<e[n].length;o++)e[n][o]>t&&(r.push(n),i.push(o));return[r,i]}function gt(e){let[t,r,i]=e.reduce((p,m)=>{let[h,d,f]=m.reduce((T,M)=>[T[0]+M,T[1]+M*M,T[2]+1],[0,0,0]);return[p[0]+h,p[1]+d,p[2]+f]},[0,0,0]),n=t/i,o=Math.sqrt(1/(i-1)*(r-t*t/i));return[n,o]}function G(e){return e.reduce((t,r)=>Math.max(t,...r),0)}function Et(e){let t=e[0].map(r=>r.slice());for(let r=1;r<e.length;++r)for(let i=0;i<e[0].length;++i)for(let n=0;n<e[0][0].length;++n)t[i][n]=Math.min(t[i][n],e[r][i][n]);return t}function Nt(e,t=1){let r=[];for(let i=0;i<e[0].length;++i)for(let n=0;n<e.length;++n){let o=!0;for(let p=Math.max(0,n-t);o&&p<=Math.min(e.length-1,n+t);++p)p!==n&&(o=o&&e[n][i]>e[p][i]);o&&r.push([n,i])}return r}function Ot(e){let t=e[0].map(r=>r.slice());for(let r=1;r<e.length;++r)for(let i=0;i<e[0].length;++i)for(let n=0;n<e[0][0].length;++n)t[i][n]=Math.max(t[i][n],e[r][i][n]);return t}function At(e){return e!==null}function Ft(e,t,r,i){if(r){let n=Q(r)-R;for(let o=0;o<e.length;o++)e[o].fill(0,n);for(let o=0;o<t.length;o++)t[o].fill(0,n)}if(i){let n=Q(i)-R;for(let o=0;o<e.length;o++)e[o].fill(0,0,n);for(let o=0;o<t.length;o++)t[o].fill(0,0,n)}}function St(e,t,r=2){let i=Array.from(Array(r).keys()).map(m=>m+1).map(m=>{let h=Array(m).fill(Array(t[0].length).fill(0)).concat(t),d=h.slice(m),f=h.slice(0,-m);if(d.length!==f.length)throw new Error(`nPlus length !== minusN length: ${d.length} !== ${f.length}`);return d.map((T,M)=>T.map((E,A)=>E-f[M][A]))}),n=Et(i);n=n.map(m=>m.map(h=>Math.max(h,0))),n=n.map((m,h)=>h<r?m.fill(0):m);let o=G(e),p=G(n);return n=n.map(m=>m.map(h=>o*h/p)),Ot([e,n])}function Z(e,t,r=.5,i=.3,n=5,o=!0,p=null,m=null,h=!0,d=11){let f=i;if(f===null){let[u,a]=gt(e);f=u+a}let T=e.length;Ft(t,e,p,m);let M=t;o&&(M=St(t,e));let E=M.map(u=>u.map(()=>0));Nt(M).forEach(([u,a])=>{E[u][a]=M[u][a]});let[A,S]=Mt(E,r);A.reverse(),S.reverse();let l=e.map(u=>u.slice()),x=A.map((u,a)=>{let s=S[a];if(u>=T-1)return null;let c=u+1,g=0;for(;c<T-1&&g<d;)l[c][s]<f?g+=1:g=0,c+=1;if(c-=g,c-u<=n)return null;for(let O=u;O<c;++O)l[O][s]=0,s<q&&(l[O][s+1]=0),s>0&&(l[O][s-1]=0);let N=e.slice(u,c).reduce((O,F)=>O+F[s],0)/(c-u);return{startFrame:u,durationFrames:c-u,pitchMidi:s+R,amplitude:N}}).filter(At);if(h===!0)for(;G(l)>f;){let[u,a]=l.reduce((F,I,K)=>{let U=Tt(I);return I[U]>l[F[0]][F[1]]?[K,U]:F},[0,0]);l[u][a]=0;let s=u+1,c=0;for(;s<T-1&&c<d;)l[s][a]<f?c+=1:c=0,l[s][a]=0,a<q&&(l[s][a+1]=0),a>0&&(l[s][a-1]=0),s+=1;let g=s-1-c;for(s=u-1,c=0;s>0&&c<d;)l[s][a]<f?c+=1:c=0,l[s][a]=0,a<q&&(l[s][a+1]=0),a>0&&(l[s][a-1]=0),s-=1;let N=s+1+c;if(N<0)throw new Error(`iStart is not positive! value: ${N}`);if(g>=T)throw new Error(`iEnd is past end of times. (iEnd, times.length): (${g}, ${T})`);let O=e.slice(N,g).reduce((F,I)=>F+I[a],0)/(g-N);g-N<=n||x.push({startFrame:N,durationFrames:g-N,pitchMidi:a+R,amplitude:O})}return x}var J=e=>e.map(t=>({pitchMidi:t.pitchMidi,amplitude:t.amplitude,pitchBends:t.pitchBends,startTimeSeconds:B(t.startFrame),durationSeconds:B(t.startFrame+t.durationFrames)-B(t.startFrame)}));globalThis.BasicPitchLib={BasicPitch:P,outputToNotesPoly:Z,noteFramesToTime:J};})();
+  (() => {
+    var tt = Object.create;
+    var v = Object.defineProperty;
+    var et = Object.getOwnPropertyDescriptor;
+    var nt = Object.getOwnPropertyNames;
+    var rt = Object.getPrototypeOf,
+      it = Object.prototype.hasOwnProperty;
+    var ot = (e, t, r) => (t in e ? v(e, t, { enumerable: !0, configurable: !0, writable: !0, value: r }) : (e[t] = r));
+    var st = (e, t) => () => (t || e((t = { exports: {} }).exports, t), t.exports);
+    var at = (e, t, r, i) => {
+      if ((t && typeof t == 'object') || typeof t == 'function')
+        for (let n of nt(t))
+          !it.call(e, n) && n !== r && v(e, n, { get: () => t[n], enumerable: !(i = et(t, n)) || i.enumerable });
+      return e;
+    };
+    var ut = (e, t, r) => (
+      (r = e != null ? tt(rt(e)) : {}),
+      at(t || !e || !e.__esModule ? v(r, 'default', { value: e, enumerable: !0 }) : r, e)
+    );
+    var H = (e, t, r) => ot(e, typeof t != 'symbol' ? t + '' : t, r);
+    var k = st((_t, $) => {
+      $.exports = globalThis.tf;
+    });
+    var b = ut(k());
+    var L = { contours: 'Identity', onsets: 'Identity_2', frames: 'Identity_1' },
+      z = 1,
+      _ = 22050,
+      C = 256,
+      mt = Math.floor(_ / C),
+      lt = 2,
+      V = _ * lt - C,
+      j = 30,
+      W = Math.floor(j / 2),
+      D = j * C,
+      ct = V - D,
+      P = class {
+        constructor(t) {
+          H(this, 'model');
+          if (D % 2 !== 0) throw new Error(`OVERLAP_LENGTH_FRAMES is not divisible by 2! Is ${D}`);
+          this.model = typeof t == 'string' ? b.loadGraphModel(t) : t;
+        }
+        adjustNoteStart(t, r) {
+          return t.map((i) => ({
+            startTimeSeconds: i.startTimeSeconds + r,
+            durationSeconds: i.durationSeconds,
+            pitch_midi: i.pitchMidi,
+            amplitude: i.amplitude,
+            pitchBends: i.pitchBends,
+          }));
+        }
+        async evaluateSingleFrame(t, r) {
+          let i = await this.model,
+            n = b.slice(t, r, 1),
+            o = i.execute(n, [L.frames, L.onsets, L.contours]);
+          return [o[0], o[1], o[2]];
+        }
+        async prepareData(t) {
+          let r = b.concat1d([b.zeros([Math.floor(D / 2)], 'float32'), b.tensor(t)]);
+          return [b.expandDims(b.signal.frame(r, V, ct, !0, 0), -1), t.length];
+        }
+        unwrapOutput(t) {
+          let r = t;
+          r = t.slice([0, W, 0], [-1, t.shape[1] - 2 * W, -1]);
+          let i = r.shape;
+          return r.reshape([i[0] * i[1], i[2]]);
+        }
+        async evaluateModel(t, r, i) {
+          let n;
+          if (t instanceof Float32Array) n = t;
+          else {
+            if (t.sampleRate !== _)
+              throw new Error(`Input audio buffer is not at correct sample rate! Is ${t.sampleRate}. Should be ${_}`);
+            if (t.numberOfChannels !== z)
+              throw new Error(
+                `Input audio buffer is not mono! Number of channels is ${t.numberOfChannels}. Should be ${z}`,
+              );
+            n = t.getChannelData(0);
+          }
+          let [o, p] = await this.prepareData(n),
+            m = Math.floor(p * (mt / _)),
+            h = 0;
+          for (let d = 0; d < o.shape[0]; ++d) {
+            i(d / o.shape[0]);
+            let [f, T, M] = await this.evaluateSingleFrame(o, d),
+              E = this.unwrapOutput(f),
+              A = this.unwrapOutput(T),
+              S = this.unwrapOutput(M),
+              l = E.shape[0];
+            if (!(h >= m)) {
+              if (l + h >= m) {
+                let x = m - h;
+                ((E = E.slice([0, 0], [x, -1])), (A = A.slice([0, 0], [x, -1])), (S = S.slice([0, 0], [x, -1])));
+              }
+              ((h += l), r(await E.array(), await A.array(), await S.array()));
+            }
+          }
+          i(1);
+        }
+      };
+    var R = 21,
+      y = 22050,
+      X = 2,
+      w = 256,
+      ht = Math.floor(y / w),
+      Y = ht * X,
+      pt = y * X - w,
+      dt = (w / y) * (Y - pt / w) + 0.0018,
+      q = 87,
+      ft = 3;
+    var bt = 88,
+      yt = bt * ft,
+      Q = (e) => 12 * (Math.log2(e) - Math.log2(440)) + 69;
+    var B = (e) => (e * w) / y - dt * Math.floor(e / Y);
+    function Tt(e) {
+      return e.length === 0 ? null : e.reduce((t, r, i) => (e[t] > r ? t : i), -1);
+    }
+    function Mt(e, t) {
+      let r = [],
+        i = [];
+      for (let n = 0; n < e.length; n++) for (let o = 0; o < e[n].length; o++) e[n][o] > t && (r.push(n), i.push(o));
+      return [r, i];
+    }
+    function gt(e) {
+      let [t, r, i] = e.reduce(
+          (p, m) => {
+            let [h, d, f] = m.reduce((T, M) => [T[0] + M, T[1] + M * M, T[2] + 1], [0, 0, 0]);
+            return [p[0] + h, p[1] + d, p[2] + f];
+          },
+          [0, 0, 0],
+        ),
+        n = t / i,
+        o = Math.sqrt((1 / (i - 1)) * (r - (t * t) / i));
+      return [n, o];
+    }
+    function G(e) {
+      return e.reduce((t, r) => Math.max(t, ...r), 0);
+    }
+    function Et(e) {
+      let t = e[0].map((r) => r.slice());
+      for (let r = 1; r < e.length; ++r)
+        for (let i = 0; i < e[0].length; ++i)
+          for (let n = 0; n < e[0][0].length; ++n) t[i][n] = Math.min(t[i][n], e[r][i][n]);
+      return t;
+    }
+    function Nt(e, t = 1) {
+      let r = [];
+      for (let i = 0; i < e[0].length; ++i)
+        for (let n = 0; n < e.length; ++n) {
+          let o = !0;
+          for (let p = Math.max(0, n - t); o && p <= Math.min(e.length - 1, n + t); ++p)
+            p !== n && (o = o && e[n][i] > e[p][i]);
+          o && r.push([n, i]);
+        }
+      return r;
+    }
+    function Ot(e) {
+      let t = e[0].map((r) => r.slice());
+      for (let r = 1; r < e.length; ++r)
+        for (let i = 0; i < e[0].length; ++i)
+          for (let n = 0; n < e[0][0].length; ++n) t[i][n] = Math.max(t[i][n], e[r][i][n]);
+      return t;
+    }
+    function At(e) {
+      return e !== null;
+    }
+    function Ft(e, t, r, i) {
+      if (r) {
+        let n = Q(r) - R;
+        for (let o = 0; o < e.length; o++) e[o].fill(0, n);
+        for (let o = 0; o < t.length; o++) t[o].fill(0, n);
+      }
+      if (i) {
+        let n = Q(i) - R;
+        for (let o = 0; o < e.length; o++) e[o].fill(0, 0, n);
+        for (let o = 0; o < t.length; o++) t[o].fill(0, 0, n);
+      }
+    }
+    function St(e, t, r = 2) {
+      let i = Array.from(Array(r).keys())
+          .map((m) => m + 1)
+          .map((m) => {
+            let h = Array(m).fill(Array(t[0].length).fill(0)).concat(t),
+              d = h.slice(m),
+              f = h.slice(0, -m);
+            if (d.length !== f.length) throw new Error(`nPlus length !== minusN length: ${d.length} !== ${f.length}`);
+            return d.map((T, M) => T.map((E, A) => E - f[M][A]));
+          }),
+        n = Et(i);
+      ((n = n.map((m) => m.map((h) => Math.max(h, 0)))), (n = n.map((m, h) => (h < r ? m.fill(0) : m))));
+      let o = G(e),
+        p = G(n);
+      return ((n = n.map((m) => m.map((h) => (o * h) / p))), Ot([e, n]));
+    }
+    function Z(e, t, r = 0.5, i = 0.3, n = 5, o = !0, p = null, m = null, h = !0, d = 11) {
+      let f = i;
+      if (f === null) {
+        let [u, a] = gt(e);
+        f = u + a;
+      }
+      let T = e.length;
+      Ft(t, e, p, m);
+      let M = t;
+      o && (M = St(t, e));
+      let E = M.map((u) => u.map(() => 0));
+      Nt(M).forEach(([u, a]) => {
+        E[u][a] = M[u][a];
+      });
+      let [A, S] = Mt(E, r);
+      (A.reverse(), S.reverse());
+      let l = e.map((u) => u.slice()),
+        x = A.map((u, a) => {
+          let s = S[a];
+          if (u >= T - 1) return null;
+          let c = u + 1,
+            g = 0;
+          for (; c < T - 1 && g < d;) (l[c][s] < f ? (g += 1) : (g = 0), (c += 1));
+          if (((c -= g), c - u <= n)) return null;
+          for (let O = u; O < c; ++O) ((l[O][s] = 0), s < q && (l[O][s + 1] = 0), s > 0 && (l[O][s - 1] = 0));
+          let N = e.slice(u, c).reduce((O, F) => O + F[s], 0) / (c - u);
+          return { startFrame: u, durationFrames: c - u, pitchMidi: s + R, amplitude: N };
+        }).filter(At);
+      if (h === !0)
+        for (; G(l) > f;) {
+          let [u, a] = l.reduce(
+            (F, I, K) => {
+              let U = Tt(I);
+              return I[U] > l[F[0]][F[1]] ? [K, U] : F;
+            },
+            [0, 0],
+          );
+          l[u][a] = 0;
+          let s = u + 1,
+            c = 0;
+          for (; s < T - 1 && c < d;)
+            (l[s][a] < f ? (c += 1) : (c = 0),
+              (l[s][a] = 0),
+              a < q && (l[s][a + 1] = 0),
+              a > 0 && (l[s][a - 1] = 0),
+              (s += 1));
+          let g = s - 1 - c;
+          for (s = u - 1, c = 0; s > 0 && c < d;)
+            (l[s][a] < f ? (c += 1) : (c = 0),
+              (l[s][a] = 0),
+              a < q && (l[s][a + 1] = 0),
+              a > 0 && (l[s][a - 1] = 0),
+              (s -= 1));
+          let N = s + 1 + c;
+          if (N < 0) throw new Error(`iStart is not positive! value: ${N}`);
+          if (g >= T) throw new Error(`iEnd is past end of times. (iEnd, times.length): (${g}, ${T})`);
+          let O = e.slice(N, g).reduce((F, I) => F + I[a], 0) / (g - N);
+          g - N <= n || x.push({ startFrame: N, durationFrames: g - N, pitchMidi: a + R, amplitude: O });
+        }
+      return x;
+    }
+    var J = (e) =>
+      e.map((t) => ({
+        pitchMidi: t.pitchMidi,
+        amplitude: t.amplitude,
+        pitchBends: t.pitchBends,
+        startTimeSeconds: B(t.startFrame),
+        durationSeconds: B(t.startFrame + t.durationFrames) - B(t.startFrame),
+      }));
+    globalThis.BasicPitchLib = { BasicPitch: P, outputToNotesPoly: Z, noteFramesToTime: J };
+  })();
   return globalThis.BasicPitchLib;
 }

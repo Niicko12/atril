@@ -705,7 +705,7 @@ Elementos, en orden, separados visualmente (`aria-live="polite"`):
 |---|---|---|
 | Conteo | Siempre | "N notas · M compases" (M = `ceil(totalUnits / bar)`) |
 | Tonalidad escrita | Instrumento transpositor | "Tonalidad escrita: La mayor" |
-| Fuera de rango | ≥ 1 nota | "N nota(s) fuera del rango de saxofón alto en mi♭ (Re♭3–La5)" en color `--oor` |
+| Fuera de rango | ≥ 1 nota | "N nota(s) fuera del rango de saxofón alto en mi♭ (Do♯3–La5)" en color `--oor` |
 | Selección | Hay selección | "Nota i+1 seleccionada (Mi4) · toca otra nota para cambiarla" (o "(silencio)") en color de acento |
 | Dibujo diferido | Render lento | "Dibujando…" |
 | Error de tablatura | 14.3 | "No se pudo dibujar la tablatura" |

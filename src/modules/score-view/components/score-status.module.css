@@ -1,0 +1,15 @@
+.status {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-variant-numeric: tabular-nums;
+}
+.warn {
+  color: var(--oor);
+  font-weight: 500;
+}
+.tip {
+  color: var(--accent);
+}

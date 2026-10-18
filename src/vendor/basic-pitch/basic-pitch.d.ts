@@ -19,7 +19,13 @@ export interface BasicPitchModel {
 }
 export interface BasicPitchLib {
   BasicPitch: new (model: unknown) => BasicPitchModel;
-  outputToNotesPoly(frames: number[][], onsets: number[][], onsetThresh: number, frameThresh: number, minNoteLen: number): BasicPitchNoteEvent[];
+  outputToNotesPoly(
+    frames: number[][],
+    onsets: number[][],
+    onsetThresh: number,
+    frameThresh: number,
+    minNoteLen: number,
+  ): BasicPitchNoteEvent[];
   noteFramesToTime(notes: BasicPitchNoteEvent[]): BasicPitchTimedNote[];
 }
 export function installBasicPitch(): BasicPitchLib;

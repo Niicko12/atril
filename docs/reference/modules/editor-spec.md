@@ -317,8 +317,10 @@ i = selection >= 0 ? selection
   : (0 <= lastIndex < length ? lastIndex : length − 1)
 n = notes[i]
 si !n o n.p == null: return
-n.p = clamp(n.p + 12·direction, MIDI_MIN, MIDI_MAX)
-si n.p no cambió (ya estaba en el límite): deshacer snapshot y toast(LIMITE_RANGO); return
+destino = n.p + 12·direction
+si destino fuera de [MIDI_MIN, MIDI_MAX]: sin cambio, sin snapshot, toast(LIMITE_RANGO); return
+   # no se recorta: recortar cambiaría la nota (p. ej. Sol♯7 → Do8), no la octava
+n.p = destino
 lastIndex = i
 ```
 
@@ -861,7 +863,7 @@ técnico; se usa en `replaceScore`, en el mapper de IndexedDB y al restaurar res
 | E4 | Seleccionar y luego deshacer un borrado que hizo la lista más larga | Selección se mantiene si el índice sigue existiendo |
 | E5 | Deshacer después de `replaceScore` | "Nada que deshacer" (historial limpio) |
 | E6 | Cambiar de instrumento con "Sonido real" activo a uno no transpositor | Vista vuelve a "Para el instrumento" |
-| E7 | 8↑ sobre una nota en Do8 | Sin cambio, toast "Esa nota ya está en el límite del rango", sin snapshot |
+| E7 | 8↑ sobre una nota en Do8, o en Sol♯7 (la octava no cabe) | Sin cambio, toast "Esa nota ya está en el límite del rango", sin snapshot |
 | E8 | Mover todo +½ con una nota en Do8 | Esa nota queda en Do8, `clipped = 1`, toast con deshacer; la tonalidad sí cambia |
 | E9 | Mover todo +8 con todas las notas en silencio | Botones deshabilitados (no hay notas con tono) |
 | E10 | Do-Re-Mi sin notas previas | Referencia Do4 (60): "Re" → Re4 (62) |
@@ -1152,7 +1154,7 @@ export const S = {
 | D7 | Sin límite de notas al escribir | 3 000 | Consistencia con BD |
 | D8 | Diapasón de violín rotulado como trastes | "Posición" | Precisión |
 | D9 | Sin anuncio para lectores de pantalla | Región `aria-live` | Accesibilidad |
-| D10 | 8↑ en el límite crea un paso de deshacer vacío | Sin paso + aviso | Claridad |
+| D10 | 8↑ cerca del límite recorta (Sol♯7 → Do8) o crea un paso vacío | Si la octava no cabe: sin cambio, sin paso, aviso | Correcto musicalmente |
 
 Cada diferencia debe aparecer en `tests/fixtures/golden/EXCEPTIONS.md` si afecta a una salida comparada.
 
