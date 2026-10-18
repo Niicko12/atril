@@ -193,6 +193,7 @@ interface ScoreState {
   future: Snapshot[];         // se vacía en cada cambio nuevo
   dirty: boolean;             // cambios desde la última carga o guardado
   revision: number;           // contador monotónico; sube en cada cambio de notes/meta
+  loadedRevision: number;     // revision al cargar la partitura (replaceScore); library no guarda si revision == loadedRevision
 }
 ```
 
@@ -387,7 +388,7 @@ validateScore(next)  → si falla lanza AppError('internal')
 score = next
 selection = −1; lastIndex = −1; view = 'written'; pendingAccidental = null
 si !keepHistory: past = []; future = []
-dirty = false; revision++
+dirty = false; revision++; loadedRevision = revision
 ```
 
 - `keepHistory: true` lo usa solo "Reajustar ritmo al tempo" (ear), que además hace push manual de snapshot para
