@@ -38,3 +38,7 @@ describe('toMeasures', () => {
   });
   it('measureCount', () => expect(measureCount([{ p: 60, d: 17 }], meterOf('4/4'))).toBe(2));
 });
+
+describe('meterOf', () => {
+  it('compás desconocido → 4/4 (notation-core 9.1)', () => expect(meterOf('5/4')).toEqual({ bar: 16, beat: 4 }));
+});

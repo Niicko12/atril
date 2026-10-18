@@ -58,3 +58,11 @@ describe('abcPitch y nombres (T-SPL-04, T-NAM-*)', () => {
     expect(midiName(70, -1)).toBe('Si♭4');
   });
 });
+
+describe('valores fuera de tabla', () => {
+  it('abcKey y keyName con armadura inválida usan Do', async () => {
+    const { abcKey } = await import('.');
+    expect(abcKey(99)).toBe('C');
+    expect(keyName(99)).toBe('Do mayor');
+  });
+});

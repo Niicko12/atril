@@ -15,6 +15,8 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/**/*.test.*', 'src/main.tsx', 'src/test-setup.ts', 'src/vendor/**'],
+      // Umbrales por capa (technical-decisions 16.1, specs de módulo).
+      thresholds: { 'src/core/**': { lines: 95, branches: 90, functions: 95 } },
     },
   },
 });

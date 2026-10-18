@@ -47,6 +47,15 @@ for (const [name, S] of Object.entries(scores)) {
   }
 }
 
+const musicxml = {};
+const midi = {};
+for (const [name, S] of Object.entries(scores)) {
+  for (const I of L.INSTR) {
+    musicxml[`${name}|${I.id}`] = L.toMusicXML(S, I);
+    midi[`${name}|${I.id}`] = Buffer.from(L.toMidi(S, I)).toString('hex');
+  }
+}
+
 const spell = {};
 for (let f = -7; f <= 7; f++)
   for (let m = 0; m <= 127; m++) {
@@ -78,7 +87,7 @@ const instruments = L.INSTR.map((i) => ({
 }));
 
 mkdirSync(new URL('../tests/fixtures/golden/', import.meta.url), { recursive: true });
-const out = { generatedFrom: 'legacy/index.html', scores, instruments, abc, spell, measures, normF };
+const out = { generatedFrom: 'legacy/index.html', scores, instruments, abc, musicxml, midi, spell, measures, normF };
 writeFileSync(new URL('../tests/fixtures/golden/core.json', import.meta.url), JSON.stringify(out));
 console.log(
   `✅ Dorados: ${Object.keys(abc).length} ABC, ${Object.keys(spell).length} spell, ${Object.keys(measures).length} medidas`,
