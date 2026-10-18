@@ -26,9 +26,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.test.*', 'src/main.tsx', 'src/test-setup.ts', 'src/vendor/**'],
+      exclude: ['src/**/*.test.*', 'src/main.tsx', 'src/test-setup.ts', 'src/vendor/**', 'src/spikes/**'],
       // Umbrales por capa (technical-decisions 16.1, specs de módulo).
-      thresholds: { 'src/core/**': { lines: 95, branches: 90, functions: 95 } },
+      thresholds: { lines: 85, 'src/core/**': { lines: 95, branches: 90, functions: 95 } },
     },
   },
 });
