@@ -5,7 +5,8 @@ import { join } from 'node:path';
 const LIMIT = 15;
 const EXCLUDED = new Set(['strings.ts', 'types.ts', 'index.ts']);
 const root = 'src/modules';
-const walk = (dir) => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [f]));
+const walk = (dir) =>
+  readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [f]));
 let failed = false;
 for (const mod of existsSync(root) ? readdirSync(root) : []) {
   const files = walk(join(root, mod)).filter((f) => /\.(ts|tsx)$/.test(f) && !/\.test\./.test(f) && !EXCLUDED.has(f));

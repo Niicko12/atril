@@ -8,7 +8,12 @@ import { buildBody } from './abc-body';
 export type AbcScore = Pick<Score, 'title' | 'composer' | 'key' | 'meter' | 'tempo' | 'notes'>;
 
 /** Texto ABC que dibuja abcjs + mapa carácter → índice de nota (notation-core-spec 10). */
-export function buildAbc(score: AbcScore, instrument: Instrument, view: View, opts: AbcBuildOptions = {}): AbcBuildResult {
+export function buildAbc(
+  score: AbcScore,
+  instrument: Instrument,
+  view: View,
+  opts: AbcBuildOptions = {},
+): AbcBuildResult {
   const transpose = view === 'written' ? instrument.transpose : 0;
   const fifths = view === 'written' ? normalizeFifths(score.key + 7 * transpose) : score.key;
   const meter = meterOf(score.meter);

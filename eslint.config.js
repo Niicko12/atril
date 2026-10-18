@@ -25,16 +25,29 @@ export default tseslint.config(
       'max-params': ['error', 4],
     },
   },
-  { files: ['src/**/components/**/*.tsx', 'src/app/**/*.tsx'], rules: { 'max-lines': lines(200), 'max-lines-per-function': 'off' } },
+  {
+    files: ['src/**/components/**/*.tsx', 'src/app/**/*.tsx'],
+    rules: { 'max-lines': lines(200), 'max-lines-per-function': 'off' },
+  },
   { files: ['src/**/hooks/**/*.ts'], rules: { 'max-lines': lines(100) } },
   { files: ['src/**/services/**/*.ts'], rules: { 'max-lines': lines(300) } },
   { files: ['src/**/store/**/*.ts'], rules: { 'max-lines': lines(250) } },
   { files: ['src/core/types/**/*.ts'], rules: { 'max-lines': lines(200) } },
-  { files: ['src/core/analysis/**/*.ts'], rules: { 'max-lines': lines(250), 'max-lines-per-function': ['error', { max: 60, skipBlankLines: true, skipComments: true }] } },
+  {
+    files: ['src/core/analysis/**/*.ts'],
+    rules: {
+      'max-lines': lines(250),
+      'max-lines-per-function': ['error', { max: 60, skipBlankLines: true, skipComments: true }],
+    },
+  },
   { files: ['src/workers/**/*.ts'], rules: { 'max-lines': lines(150) } },
   {
     files: ['src/**/*.test.{ts,tsx}'],
-    rules: { 'max-lines': lines(400), 'max-lines-per-function': 'off', '@typescript-eslint/no-non-null-assertion': 'off' },
+    rules: {
+      'max-lines': lines(400),
+      'max-lines-per-function': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
   },
   { files: ['scripts/**/*.mjs', '*.config.{js,ts}', '*.cjs', '.*.cjs'], languageOptions: { globals: globals.node } },
 );

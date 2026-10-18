@@ -1,7 +1,15 @@
 import type { Fifths, Letter, Midi, Spelling } from '../types';
 import { spell } from './spelling';
 
-export const SOLFEGE: Readonly<Record<Letter, string>> = { C: 'Do', D: 'Re', E: 'Mi', F: 'Fa', G: 'Sol', A: 'La', B: 'Si' };
+export const SOLFEGE: Readonly<Record<Letter, string>> = {
+  C: 'Do',
+  D: 'Re',
+  E: 'Mi',
+  F: 'Fa',
+  G: 'Sol',
+  A: 'La',
+  B: 'Si',
+};
 
 /** "Fa♯", "Si♭", "Do". */
 export function noteName(s: Pick<Spelling, 'letter' | 'alter'>): string {

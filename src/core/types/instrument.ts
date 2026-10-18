@@ -1,10 +1,25 @@
 import type { Midi, Semitones } from './units';
 
 export type InstrumentId =
-  | 'piano' | 'voz' | 'guitarra' | 'bajo' | 'ukulele'
-  | 'violin' | 'viola' | 'cello' | 'contrabajo'
-  | 'flauta' | 'oboe' | 'clarinete' | 'saxalto' | 'saxtenor'
-  | 'trompeta' | 'corno' | 'trombon' | 'tuba' | 'flautadulce';
+  | 'piano'
+  | 'voz'
+  | 'guitarra'
+  | 'bajo'
+  | 'ukulele'
+  | 'violin'
+  | 'viola'
+  | 'cello'
+  | 'contrabajo'
+  | 'flauta'
+  | 'oboe'
+  | 'clarinete'
+  | 'saxalto'
+  | 'saxtenor'
+  | 'trompeta'
+  | 'corno'
+  | 'trombon'
+  | 'tuba'
+  | 'flautadulce';
 
 export type Clef = 'treble' | 'bass' | 'alto';
 export type ClefRule = Clef | 'auto';

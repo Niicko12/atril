@@ -7,8 +7,23 @@ import { meterOf, toMeasures } from './rhythm';
 import type { MeterId, Note, View } from './types';
 
 interface Golden {
-  scores: Record<string, { title: string; composer: string; key: number; meter: MeterId; tempo: number; notes: Note[] }>;
-  instruments: { id: string; n: string; t: number; clef: string; lo: number; hi: number; tb: string; gm: number; tab: string | null; str: number[] | null; note: string | null }[];
+  scores: Record<
+    string,
+    { title: string; composer: string; key: number; meter: MeterId; tempo: number; notes: Note[] }
+  >;
+  instruments: {
+    id: string;
+    n: string;
+    t: number;
+    clef: string;
+    lo: number;
+    hi: number;
+    tb: string;
+    gm: number;
+    tab: string | null;
+    str: number[] | null;
+    note: string | null;
+  }[];
   abc: Record<string, { abc: string; charMap: [number, number][]; f: number; t: number }>;
   spell: Record<string, string>;
   measures: Record<string, unknown[]>;
@@ -27,7 +42,15 @@ describe('dorados contra legacy', () => {
     for (const g of golden.instruments) {
       const i = getInstrument(g.id);
       expect(i.id).toBe(g.id);
-      expect([i.name, i.transpose, i.clef, i.low, i.high, i.timbre, i.gmProgram]).toEqual([g.n, g.t, g.clef, g.lo, g.hi, g.tb, g.gm]);
+      expect([i.name, i.transpose, i.clef, i.low, i.high, i.timbre, i.gmProgram]).toEqual([
+        g.n,
+        g.t,
+        g.clef,
+        g.lo,
+        g.hi,
+        g.tb,
+        g.gm,
+      ]);
       expect(i.tab ?? null).toBe(g.tab);
       expect(i.strings ? [...i.strings] : null).toEqual(g.str);
       expect(i.note ?? null).toBe(g.note);

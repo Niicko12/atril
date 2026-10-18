@@ -1,14 +1,29 @@
 import { measureCount, meterOf, splitDuration, toMeasures } from '.';
 
 describe('splitDuration (T-MEA-01)', () => {
-  it.each([[16, [16]], [10, [8, 2]], [7, [6, 1]], [5, [4, 1]], [24, [16, 8]]])('%i', (u, parts) => expect(splitDuration(u)).toEqual(parts));
+  it.each([
+    [16, [16]],
+    [10, [8, 2]],
+    [7, [6, 1]],
+    [5, [4, 1]],
+    [24, [16, 8]],
+  ])('%i', (u, parts) => expect(splitDuration(u)).toEqual(parts));
 });
 
 describe('toMeasures', () => {
   it('ejemplo 9.4: Do♯ ligado sobre la barra (T-MEA-02)', () => {
-    const m = toMeasures([{ p: 60, d: 12 }, { p: 61, d: 8 }], meterOf('4/4'));
+    const m = toMeasures(
+      [
+        { p: 60, d: 12 },
+        { p: 61, d: 8 },
+      ],
+      meterOf('4/4'),
+    );
     expect(m).toEqual([
-      [{ idx: 0, p: 60, d: 12, first: true, last: true, pos: 0 }, { idx: 1, p: 61, d: 4, first: true, last: false, pos: 12 }],
+      [
+        { idx: 0, p: 60, d: 12, first: true, last: true, pos: 0 },
+        { idx: 1, p: 61, d: 4, first: true, last: false, pos: 12 },
+      ],
       [{ idx: 1, p: 61, d: 4, first: false, last: true, pos: 0 }],
     ]);
   });

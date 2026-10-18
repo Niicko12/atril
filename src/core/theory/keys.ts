@@ -1,8 +1,40 @@
 import type { Fifths, Letter } from '../types';
 
 /** Índice = fifths + 7 (de −7 a 7). */
-export const MAJOR_NAMES = ['Do♭', 'Sol♭', 'Re♭', 'La♭', 'Mi♭', 'Si♭', 'Fa', 'Do', 'Sol', 'Re', 'La', 'Mi', 'Si', 'Fa♯', 'Do♯'] as const;
-export const MINOR_NAMES = ['La♭', 'Mi♭', 'Si♭', 'Fa', 'Do', 'Sol', 'Re', 'La', 'Mi', 'Si', 'Fa♯', 'Do♯', 'Sol♯', 'Re♯', 'La♯'] as const;
+export const MAJOR_NAMES = [
+  'Do♭',
+  'Sol♭',
+  'Re♭',
+  'La♭',
+  'Mi♭',
+  'Si♭',
+  'Fa',
+  'Do',
+  'Sol',
+  'Re',
+  'La',
+  'Mi',
+  'Si',
+  'Fa♯',
+  'Do♯',
+] as const;
+export const MINOR_NAMES = [
+  'La♭',
+  'Mi♭',
+  'Si♭',
+  'Fa',
+  'Do',
+  'Sol',
+  'Re',
+  'La',
+  'Mi',
+  'Si',
+  'Fa♯',
+  'Do♯',
+  'Sol♯',
+  'Re♯',
+  'La♯',
+] as const;
 export const ABC_KEYS = ['Cb', 'Gb', 'Db', 'Ab', 'Eb', 'Bb', 'F', 'C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'] as const;
 
 export const LETTERS: readonly Letter[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];

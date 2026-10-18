@@ -38,7 +38,12 @@ function emitPitch(part: MeasurePart & { p: number }, ctx: BodyContext, state: R
 }
 
 /** Cuerpo ABC; registra en charMap la posición de cada fragmento (offset = longitud del encabezado). */
-export function buildBody(ctx: Omit<BodyContext, 'keyAcc'>, meter: Meter, offset: number, charMap: Map<number, number>): string {
+export function buildBody(
+  ctx: Omit<BodyContext, 'keyAcc'>,
+  meter: Meter,
+  offset: number,
+  charMap: Map<number, number>,
+): string {
   const full: BodyContext = { ...ctx, keyAcc: keyAccidentals(ctx.fifths) };
   let body = '';
   for (const measure of toMeasures(ctx.notes, meter)) {

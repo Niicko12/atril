@@ -1,4 +1,14 @@
-import { abcPitch, keyAccidentals, keyName, keyOptionLabel, midiName, noteName, normalizeFifths, spell, writtenFifths } from '.';
+import {
+  abcPitch,
+  keyAccidentals,
+  keyName,
+  keyOptionLabel,
+  midiName,
+  noteName,
+  normalizeFifths,
+  spell,
+  writtenFifths,
+} from '.';
 
 describe('armaduras (notation-core 4)', () => {
   it('keyAccidentals', () => {
@@ -25,9 +35,17 @@ describe('armaduras (notation-core 4)', () => {
 });
 
 describe('spell (notation-core 5.3, T-SPL-01/03)', () => {
-  const s = (m: number, f: number) => { const x = spell(m, f); return noteName(x) + x.octave; };
+  const s = (m: number, f: number) => {
+    const x = spell(m, f);
+    return noteName(x) + x.octave;
+  };
   it.each([
-    [61, 0, 'Do♯4'], [70, -1, 'Si♭4'], [65, 6, 'Mi♯4'], [71, -6, 'Do♭5'], [66, -1, 'Sol♭4'], [60, 7, 'Si♯3'],
+    [61, 0, 'Do♯4'],
+    [70, -1, 'Si♭4'],
+    [65, 6, 'Mi♯4'],
+    [71, -6, 'Do♭5'],
+    [66, -1, 'Sol♭4'],
+    [60, 7, 'Si♯3'],
   ])('%i en %i → %s', (m, f, expected) => expect(s(m, f)).toBe(expected));
 });
 
