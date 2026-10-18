@@ -459,6 +459,7 @@ atril/
 | ADR-010 | Sin login ni backend | Supabase con cuentas | R3 (decisión del usuario); privacidad; US$0 |
 | ADR-012 | Respaldo en archivo para moverse entre dispositivos | Sincronización en la nube | No requiere identidad |
 | ADR-013 | Pedir almacenamiento persistente y sugerir instalar en la pantalla de inicio | Nada | Safari puede borrar datos de sitios no visitados en 7 días (riesgo RK9) |
+| ADR-014 | Basic Pitch: código de legacy vendorizado (`src/vendor/basic-pitch`, Apache-2.0) + TF.js **4.22 modular** (core, converter, backend-webgl, backend-cpu) | `@spotify/basic-pitch` npm | El paquete npm está abandonado (1.0.1 de 2022, arrastra TF.js 3 completo y @tonejs/midi). Spike 2026-10-18: en Chrome funciona en Worker con WebGL y con la CSP sin `unsafe-eval` |
 
 ---
 
@@ -1997,8 +1998,8 @@ Correcciones menores detectadas al revisar legacy:
 | Tema | Dónde | Origen |
 |---|---|---|
 | JSZip → fflate (ADR-011) | 2.1 tabla Frontend | formats-spec 2.1 |
-| Basic Pitch: paquete npm o vendorizado; Worker o hilo principal | 2.1, 6.4, 19.2 RK3 | ear-spec 11.1-11.2 |
-| CSP final (¿TF.js necesita `unsafe-eval`?) | 13.5 | RK7 |
+| ~~Basic Pitch: paquete npm o vendorizado~~ **Resuelto: vendorizado (ADR-014).** Worker o hilo principal en Safari de iPhone: pendiente de la prueba en el teléfono | 2.1, 6.4, 19.2 RK3 | ear-spec 11.1-11.2 |
+| ~~CSP final~~ **Resuelto:** TF.js con WebGL no necesita `unsafe-eval`; la CSP de 13.5 queda igual (probado en Vercel, Chrome) | 13.5 | RK7 |
 
 ---
 
