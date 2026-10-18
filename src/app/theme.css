@@ -1,0 +1,25 @@
+/* Tokens portados de legacy/index.html (technical-decisions 10.7). La hoja (.paper) es siempre clara. */
+:root {
+  --bg: #e9edeb; --surface: #f7f8f6; --fg: #1b2220; --muted: #59645f; --line: #cdd5d1;
+  --accent: #8e1b3b; --accent-fg: #ffffff; --accent-soft: #f1dde3;
+  --paper: #fffdf7; --ink: #16181a; --mark: #b3123e; --oor: #c25400;
+  --display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --body: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131817; --surface: #1c2321; --fg: #e6ebe9; --muted: #9aa6a1; --line: #324039;
+    --accent: #e2678a; --accent-fg: #1a0f13; --accent-soft: #3a2129; --paper: #f1ede4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131817; --surface: #1c2321; --fg: #e6ebe9; --muted: #9aa6a1; --line: #324039;
+  --accent: #e2678a; --accent-fg: #1a0f13; --accent-soft: #3a2129; --paper: #f1ede4;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { font-family: var(--body); font-size: 15px; line-height: 1.45; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

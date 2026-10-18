@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  calidad:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Tipos
+        run: npm run typecheck
+      - name: Lint (incluye límites de estructura)
+        run: npm run lint
+      - name: Capas y ciclos
+        run: npm run depcruise
+      - name: Archivos por módulo
+        run: npm run check:modules
+      - name: Tests y cobertura
+        run: npm run test -- --coverage
+      - name: Build y presupuesto de bundle
+        run: npm run build

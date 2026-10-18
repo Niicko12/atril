@@ -736,7 +736,7 @@ Elementos, en orden, separados visualmente (`aria-live="polite"`):
 | C2 | Una sola nota de 48 semicorcheas en 4/4 | Tres redondas ligadas en 3 compases |
 | C3 | Nota de 5 en 3/8 empezando en pos 4 | 2 en el compás actual + 3 en el siguiente, ligadas |
 | C4 | Silencio de 20 en 4/4 | Redonda + negra de silencio, sin ligadura |
-| C5 | Do♯ ligado sobre la barra | `^C4-|^C4` (D1) |
+| C5 | Do♯ ligado sobre la barra | `^C4-| ^C4` (D1) |
 | C6 | Mismo Fa♯ dos veces en un compás de Do mayor | Solo el primero lleva `^` |
 | C7 | Fa♯ y luego Fa natural en el mismo compás | Segundo lleva `=` |
 | C8 | Fa♯4 y Fa♯5 en el mismo compás | Ambos llevan `^` (estado por letra+octava, como la notación tradicional en ABC) |
@@ -835,7 +835,7 @@ Diferencias permitidas, registradas en `tests/fixtures/golden/EXCEPTIONS.md`:
 | T-MEA-04 | toMeasures | Suma de duraciones por compás ≤ bar | Propiedad (fast-check) |
 | T-MEA-05 | toMeasures | Suma total de fragmentos = suma de notas | Propiedad |
 | T-ABC-01 | buildAbc | C1 | `x16|]` |
-| T-ABC-02 | buildAbc | C5 (D1) | `^C4-|^C4` |
+| T-ABC-02 | buildAbc | C5 (D1) | `^C4-| ^C4` |
 | T-ABC-03 | buildAbc | C6, C7, C8 | Alteraciones correctas |
 | T-ABC-04 | buildAbc | C13, C14, C15, D2 | Escapado |
 | T-ABC-05 | buildAbc | C16, C17 | Orden de anotaciones |

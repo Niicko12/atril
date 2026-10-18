@@ -1,0 +1,18 @@
+{
+  "himno": { "title": "Himno de la alegría", "composer": "L. van Beethoven", "key": 0, "meter": "4/4", "tempo": 100,
+    "notes": "64:4 64:4 65:4 67:4 67:4 65:4 64:4 62:4 60:4 60:4 62:4 64:4 64:6 62:2 62:8 64:4 64:4 65:4 67:4 67:4 65:4 64:4 62:4 60:4 60:4 62:4 64:4 62:6 60:2 60:8 62:4 62:4 64:4 60:4 62:4 64:2 65:2 64:4 60:4 62:4 64:2 65:2 64:4 62:4 60:4 62:4 55:8 64:4 64:4 65:4 67:4 67:4 65:4 64:4 62:4 60:4 60:4 62:4 64:4 62:6 60:2 60:8" },
+  "estrellita": { "title": "Estrellita", "composer": "Tradicional", "key": 0, "meter": "4/4", "tempo": 96,
+    "notes": "60:4 60:4 67:4 67:4 69:4 69:4 67:8 65:4 65:4 64:4 64:4 62:4 62:4 60:8 67:4 67:4 65:4 65:4 64:4 64:4 62:8 67:4 67:4 65:4 65:4 64:4 64:4 62:8 60:4 60:4 67:4 67:4 69:4 69:4 67:8 65:4 65:4 64:4 64:4 62:4 62:4 60:8" },
+  "escala-sol": { "title": "Escala de Sol mayor", "composer": "Ejercicio", "key": 1, "meter": "4/4", "tempo": 80,
+    "notes": "55:2 57:2 59:2 60:2 62:2 64:2 66:2 67:2 67:2 66:2 64:2 62:2 60:2 59:2 57:2 55:2 55:16" },
+  "vacia": { "title": "", "composer": "", "key": 0, "meter": "4/4", "tempo": 100, "notes": "" },
+  "nota-larga": { "title": "Larga", "composer": "", "key": 0, "meter": "4/4", "tempo": 100, "notes": "60:48" },
+  "tres-octavos": { "title": "3/8", "composer": "", "key": 0, "meter": "3/8", "tempo": 100, "notes": "62:4 64:5 r:3" },
+  "silencio-largo": { "title": "Silencio", "composer": "", "key": 0, "meter": "4/4", "tempo": 100, "notes": "r:20 60:4" },
+  "fa-sostenidos": { "title": "Alteraciones", "composer": "", "key": 0, "meter": "4/4", "tempo": 100, "notes": "66:4 66:4 65:4 78:4 66:16" },
+  "mib-seis-octavos": { "title": "Mib", "composer": "Anónimo", "key": -3, "meter": "6/8", "tempo": 90, "notes": "63:6 64:2 66:4 r:2 58:12" },
+  "doce-octavos": { "title": "12/8", "composer": "", "key": 2, "meter": "12/8", "tempo": 70, "notes": "62:3 64:3 66:6 69:12 71:6 73:6 74:12" },
+  "graves": { "title": "Graves", "composer": "", "key": -2, "meter": "3/4", "tempo": 120, "notes": "36:4 38:4 41:4 43:12 29:8 r:4" },
+  "con-acordes": { "title": "Acordes", "composer": "", "key": 0, "meter": "4/4", "tempo": 100,
+    "notes": "60:4 64:4 67:4 72:4", "chords": { "0": "Do", "2": "Sol7" } }
+}
