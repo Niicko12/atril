@@ -2,7 +2,7 @@
 name: atril-ear-spec
 status: in-progress
 created: 2026-10-18T12:45:27Z
-updated: 2026-10-18T12:45:27Z
+updated: 2026-10-18T12:51:10Z
 ---
 
 # Spec: Módulo `ear` ("De oído")
@@ -61,12 +61,12 @@ velocidad sin cambio de tono), F16 (la partitura sigue al audio, aprobado 2026-1
 | Decodificar un audio o video local a mono | Grabar con micrófono (post-MVP) |
 | Dibujar la onda, reproducir, saltar, A-B, velocidad | Cambiar el tono del audio (post-MVP) |
 | Detectar notas de una voz sola (YIN) | Separar pistas con calidad de estudio |
-| Encontrar la melodía principal de una mezcla | Subir el audio a un servidor (salvo F14 explícito) |
+| Encontrar la melodía principal de una mezcla | Subir el audio a un servidor (nunca: no hay servidor) |
 | Transcribir polifonía con Basic Pitch y separar melodía/bajo/acordes | Usar IA externa (R1) |
 | Estimar tempo y tonalidad, cuantizar, entregar al editor | Editar notas (lo hace `editor`) |
 | Resaltar en la partitura la nota que suena en el audio (F16) | |
 
-**Garantía de privacidad (US-E07):** sin F14 activado, ningún byte del audio sale del dispositivo.
+**Garantía de privacidad (US-E07):** ningún byte del audio sale del dispositivo (no hay servidor; F14 guarda local).
 
 ---
 
@@ -684,14 +684,16 @@ Un error de Worker no deja el botón deshabilitado (siempre `finally`).
 
 ## 21. Guardar el audio (F14, *Could*)
 
-Solo si el flag `features.audioUpload` está activo y hay sesión:
+Solo si el flag `features.audioUpload` está activo:
 
-- Casilla "Guardar el audio con la partitura (se sube a tu cuenta)" desmarcada por defecto, con texto claro de que
-  el audio se sube.
-- Límites del plan gratuito (technical-decisions 2.5): 20 MB por archivo, 100 MB por usuario. Si se supera:
-  "Tu espacio para audios está lleno. Borra algún audio guardado."
-- Subida tras guardar la partitura (`audio_sources.score_id`).
-- Reabrir la partitura ofrece "Abrir el audio guardado" (URL firmada de 10 min → `fetch` → decodificar).
+- Casilla "Guardar el audio en este dispositivo junto a la partitura" desmarcada por defecto.
+- El audio **no sale del dispositivo**: se guarda como Blob en el store `audio` de IndexedDB (technical-decisions
+  7.3), con `scoreId` de la partitura resultante.
+- Límites: 20 MB por archivo, 200 MB en total. Si se supera: "El espacio para audios está lleno. Borra algún audio
+  guardado."
+- Reabrir la partitura ofrece "Abrir el audio guardado" (Blob → `decodeAudioData`), lo que también reactiva el
+  seguimiento F16 si la partitura no cambió.
+- El respaldo puede incluir los audios (casilla "Incluir audios", desmarcada por defecto por tamaño).
 
 ---
 

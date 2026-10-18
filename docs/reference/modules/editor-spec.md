@@ -2,7 +2,7 @@
 name: atril-editor-spec
 status: in-progress
 created: 2026-10-18T12:29:49Z
-updated: 2026-10-18T12:29:49Z
+updated: 2026-10-18T12:51:10Z
 ---
 
 # Spec: Módulo `editor`
@@ -72,7 +72,7 @@ El módulo `editor` es dueño de **la partitura en edición** y de **todas las f
 | Dibujar el pentagrama | `score-view` |
 | Generar ABC, MusicXML, MIDI | `core/notation`, `core/formats` |
 | Sintetizar sonido | `playback` |
-| Guardar en IndexedDB o Supabase | `library` (se suscribe al store) |
+| Guardar en IndexedDB | `library` (se suscribe al store) |
 | Leer archivos | `import` |
 | Analizar audio | `ear` |
 
@@ -207,7 +207,7 @@ interface ScoreState {
    `dirty = false`, `revision = 0`.
 
 El modo de entrada (`EditorMode`) **no** vive en este store: vive en `usePrefsStore` (persistido, inicial
-`'piano'`, o `profiles.input_mode` si hay sesión).
+`'piano'`), guardado en `prefs.inputMode` de IndexedDB.
 
 ### 3.4 Derivados (selectores)
 
@@ -392,12 +392,13 @@ dirty = false; revision++
 
 - `keepHistory: true` lo usa solo "Reajustar ritmo al tempo" (ear), que además hace push manual de snapshot para
   poder deshacer el reajuste.
-- La decisión de qué hacer con la partitura anterior (guardar en la nube, preguntar) es de `library`, **antes** de
-  llamar a `replaceScore` (sección 11).
+- Antes de llamar a `replaceScore`, `library.prepareReplace()` fuerza el guardado pendiente de la partitura actual
+  (sección 11).
 
-### 4.16 `markSaved(remote: RemoteRef): void` — sin historial
+### 4.16 `markSaved(savedAt: string): void` — sin historial
 
-Lo llama `library` tras guardar: `score.remote = remote; dirty = false`. No incrementa `revision`.
+Lo llama `library` tras el guardado automático: `score.savedAt = savedAt; dirty = false`. No incrementa
+`revision`.
 
 ### 4.17 `replaceNotesKeepingMeta(notes: Note[]): void` — [H][S][R]
 
@@ -509,9 +510,9 @@ redo(): simétrico
 | | Alteración pendiente |
 | | `replaceScore` (limpia el historial) |
 
-### 6.4 Interacción con la nube
+### 6.4 Interacción con el guardado automático
 
-Deshacer y rehacer marcan `dirty`; el autoguardado de `library` sube el estado resultante. No se sincroniza el
+Deshacer y rehacer marcan `dirty`; el guardado automático de `library` guarda el estado resultante. No se sincroniza el
 historial (vive solo en memoria y se pierde al recargar; ver pregunta abierta Q2).
 
 ---
@@ -765,13 +766,13 @@ primer toque: armed = true; texto "¿Empezar de cero?"; estilo .warn; timeout 3 
 segundo toque dentro del plazo: desarmar; onConfirm()
 ```
 
-`onConfirm` lo provee `AppShell` y delega en `library.prepareReplace()` (guardar o preguntar por cambios, ver
+`onConfirm` lo provee `AppShell` y delega en `library.prepareReplace()` (fuerza el guardado pendiente, ver
 technical-decisions 11.4) y luego:
 
 ```typescript
 replaceScore({
-  localId: newLocalId(), title: 'Mi canción', composer: '', instrumentId: current.instrumentId,
-  key: 0, meter: '4/4', tempo: 96, showNames: false, showTab: false, notes: [], source: 'manual',
+  id: crypto.randomUUID(), title: 'Mi canción', composer: '', instrumentId: current.instrumentId,
+  key: 0, meter: '4/4', tempo: 96, showNames: false, showTab: false, notes: [], source: 'manual', savedAt: null,
 });
 ```
 
@@ -789,7 +790,7 @@ replaceScore({
 | Origen | Llamada | `source` |
 |---|---|---|
 | Ejemplo (library) | `replaceScore(fromSample(s, instrumentId))` | `'sample'` |
-| Abrir de la nube (library) | `replaceScore(rowToScore(row))` | el guardado |
+| Abrir de "Mis partituras" (library) | `replaceScore(recordToScore(record))` | el guardado |
 | Importar archivo (import) | `replaceScore(fromImport(result))` | `'musicxml' / 'midi' / 'abc'` |
 | De oído (ear) | `replaceScore(fromEar(...))` | `'ear_solo' / 'ear_mix' / 'ear_parts'` |
 | Reajustar ritmo (ear) | `replaceNotesKeepingMeta(notes)` | sin cambio |
@@ -818,8 +819,8 @@ El índice que suena (`onPosition`) se pasa a `score-view` por un store efímero
 
 ### 12.3 `library`
 
-- Se suscribe a `revision` para el borrador local (debounce 800 ms) y al autoguardado (5 s).
-- Llama `markSaved(remote)` tras guardar.
+- Se suscribe a `revision` para el guardado automático en IndexedDB (debounce 800 ms).
+- Llama `markSaved(savedAt)` tras guardar.
 - Ejecuta `prepareReplace()` antes de cualquier `replaceScore` iniciado por el usuario.
 
 ### 12.4 `export`
@@ -845,7 +846,7 @@ store.
 | V10 | La vista "Sonido real" solo existe para instrumentos transpositores | `setView`, `setMeta(instrumentId)` |
 
 `validateScore(score): asserts score is Score` (en `core/score/validate.ts`) comprueba V1-V7 y lanza con un mensaje
-técnico; se usa en `replaceScore` y en el mapper de la nube.
+técnico; se usa en `replaceScore`, en el mapper de IndexedDB y al restaurar respaldos.
 
 ---
 

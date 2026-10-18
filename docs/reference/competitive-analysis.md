@@ -2,7 +2,7 @@
 name: atril-competitive-analysis
 status: in-progress
 created: 2026-10-18T12:11:33Z
-updated: 2026-10-18T12:23:58Z
+updated: 2026-10-18T12:51:10Z
 ---
 
 # Análisis Competitivo - Atril
@@ -513,8 +513,8 @@ Leyenda: ✅ sí · ⚠️ parcial o limitado · ❌ no · ? no verificado · �
 | Importar ABC | ✅ | ⚠️ (plugin) | ❌ ? | ❌ ? | ❌ ? | ❌ |
 | Exportar PDF | ✅ | ✅ | ✅ | ✅ | ✅ ? | ❌ |
 | Exportar MusicXML + MIDI | ✅ (ZIP) | ✅ | ✅ | ✅ | ✅ ? | ❌ |
-| Guardar en la nube | ✅ | ✅ (web) | ✅ | ✅ | ✅ | ✅ |
-| Usar sin cuenta | ✅ | ✅ (Studio) | ❌ ? | ❌ ? | ⚠️ | ❌ ? |
+| Guardar en la nube | ❌ (en el dispositivo + respaldo; sin login, R3) | ✅ (web) | ✅ | ✅ | ✅ | ✅ |
+| Usar sin cuenta | ✅ (nunca hay cuenta) | ✅ (Studio) | ❌ ? | ❌ ? | ⚠️ | ❌ ? |
 | Compartir por enlace | ❌ (post-MVP) | ✅ | ✅ | ✅ | ✅ | ⚠️ |
 | Colaboración en tiempo real | ❌ | ❌ | ✅ | ❌ ? | ❌ | ❌ |
 | Catálogo de partituras | ⚠️ (3 ejemplos + enlaces) | ✅ | ⚠️ | ✅ (80 000+ 💲) | ✅ | ❌ |
@@ -560,7 +560,8 @@ En "notación profesional" MuseScore ganaría con claridad.
 | G2. "Tengo un audio y quiero la partitura" | Moises da acordes y pistas, no la partitura de la melodía (según lo investigado) | De oído: voz sola, mezcla y partes, todo local |
 | G3. Escribir rápido en el celular | Editores pensados para escritorio | Dock inferior con piano, diapasón y Do-Re-Mi; un toque = una nota |
 | G4. Sin muros de pago para lo básico | Exportar y descargar suele ser de pago | MVP gratis, incluido PDF y MusicXML |
-| G5. Privacidad del audio | Moises y otros procesan en la nube | Procesamiento local; el audio no sale del teléfono salvo F14 |
+| G5. Privacidad del audio | Moises y otros procesan en la nube | Procesamiento local; el audio nunca sale del teléfono |
+| G7. Sin registro | Todos los competidores piden cuenta para guardar | Sin login: se abre y se usa (decisión 2026-10-18) |
 | G6. Solfeo latino y tono cercano | Traducciones genéricas | Español como idioma de diseño |
 
 ### 6.2 Propuesta de valor
@@ -619,8 +620,8 @@ le serviría mucho → registrar como idea post-MVP de alto valor.
 | Cita | "Quiero anotar rápido una melodía antes de que se me olvide." |
 | Uso de Atril | Escribe con Do-Re-Mi o piano, reproduce para comprobar, guarda en "Mis partituras" |
 
-**Implicación:** editor rápido, aviso de notas fuera de rango del violín, guardar en la nube entre su iPhone y la
-computadora de la escuela.
+**Implicación:** editor rápido, aviso de notas fuera de rango del violín. Para pasar partituras entre su iPhone y la
+computadora de la escuela usa el **archivo de respaldo** o exporta el ZIP para MuseScore (sin login, R3).
 
 ### 7.3 Persona 3 — Don Ernesto, guitarrista aficionado
 
@@ -675,7 +676,7 @@ Sibelius. Atril no debe agregar funciones solo para este perfil.
 | Tablatura | — | — | ●●● | — |
 | Nombres de notas | ●● | ● | ●● | ●●● |
 | PDF | ●●● | ●● | ● | ●●● |
-| Nube entre dispositivos | ● | ●●● | ● | ●● |
+| Pasar partituras entre dispositivos (respaldo) | ● | ●●● | ● | ●● |
 | Velocidad lenta / bucle | ●● | ●● | ●●● | ● |
 
 ---
@@ -705,8 +706,8 @@ Worker y del objetivo ≤ 6 s por 60 s de audio.
 | 2. Abre Atril | Recupera el borrador de ayer | 😐 | "Nueva" visible; el borrador no se pierde |
 | 3. Escribe | Do-Re-Mi, corchea, puntillo | 🙂 | Duración actual siempre visible |
 | 4. Se equivoca | Borra / deshace | 😟 → 🙂 | Deshacer y rehacer |
-| 5. Guarda | Inicia sesión con Google | 😐 | Login en 2 toques; la partitura no se pierde durante el login |
-| 6. En la escuela | Abre la misma partitura en la computadora | 😀 | Nube + atajos de teclado |
+| 5. Se guarda sola | Ve "Guardada en este dispositivo" | 🙂 | Sin login ni botón Guardar |
+| 6. En la escuela | Se manda la copia de respaldo por WhatsApp y la restaura en la computadora | 😐 | Respaldo en 2 toques + atajos de teclado |
 
 ### 8.3 Ernesto: melodía y acordes de una canción
 
@@ -774,7 +775,7 @@ experimentar sin miedo.
 
 **US-W09** — Como Lucía, quiero empezar una partitura nueva sin perder la actual por accidente.
 - CA1: "Nueva" pide confirmación con un segundo toque (como legacy).
-- CA2: Si hay sesión, la actual se guarda en la nube; si no, se avisa que se descarta.
+- CA2: La actual ya quedó guardada sola en el dispositivo.
 - Prioridad: **Must** · F01, F09
 
 ### 9.2 Épica E2 — Instrumento y vista (F02, F03)
@@ -889,26 +890,29 @@ partitura, para seguirla.
 - CA2: Resaltado con la misma clase que la reproducción.
 - Prioridad: **Should** · F08 (nueva; inspirada en Soundslice)
 
-### 9.6 Épica E6 — Mis partituras y cuenta (F09, F11)
+### 9.6 Épica E6 — Mis partituras, sin login (F09, F11)
 
 **US-L01** — Como Lucía, quiero que la app recuerde lo que estaba escribiendo aunque cierre el navegador, sin
 crear cuenta.
 - Prioridad: **Must** · F11
 
-**US-L02** — Como Lucía, quiero iniciar sesión con Google o con un enlace a mi correo, sin contraseña.
-- CA1: La partitura en curso no se pierde durante el login.
+**US-L02** — Como Lucía, quiero usar Atril sin registrarme ni iniciar sesión nunca.
+- CA1: No existe ninguna pantalla de login, cuenta ni correo (R3).
 - Prioridad: **Must** · F09
 
-**US-L03** — Como Lucía, quiero ver mis partituras guardadas y abrirlas en otro dispositivo.
+**US-L03** — Como Lucía, quiero ver mis partituras guardadas en este dispositivo y abrirlas.
 - CA1: Lista con título, instrumento y fecha, la más reciente arriba.
 - Prioridad: **Must** · F09
 
-**US-L04** — Como Lucía, quiero que mis cambios se guarden solos una vez que la partitura está en la nube.
-- CA1: Autoguardado cada 5 s con cambios; indicador "Guardada / Guardando / Sin conexión".
+**US-L04** — Como Lucía, quiero que mis cambios se guarden solos, sin botón "Guardar".
+- CA1: Guardado automático 800 ms después de cada cambio; indicador "Guardada en este dispositivo".
+- CA2: Un ejemplo sin tocar no aparece en "Mis partituras".
 - Prioridad: **Must** · F09
 
-**US-L05** — Como Lucía, si edito la misma partitura en dos dispositivos, quiero que no se pierda ninguna versión.
-- CA1: Diálogo con 3 opciones (mía, nube, copia).
+**US-L05** — Como Lucía, quiero pasar mis partituras a otro dispositivo sin cuenta.
+- CA1: "Hacer copia de respaldo" genera un archivo que puedo descargar o compartir (WhatsApp, Drive).
+- CA2: "Restaurar copia" en el otro dispositivo agrega las nuevas y actualiza las más recientes, sin borrar nada.
+- CA3: Recordatorio si no hice copia en 14 días.
 - Prioridad: **Must** · F09
 
 **US-L06** — Como Lucía, quiero recuperar una partitura que borré por error.
@@ -919,7 +923,7 @@ crear cuenta.
 - Prioridad: **Should** · F09
 
 **US-L08** — Como Lucía, quiero compartir un enlace de solo lectura.
-- Prioridad: **Won't (MVP)** — requiere cambio de schema y políticas (ver 11.2)
+- Prioridad: **Won't (MVP)** — sin servidor no hay dónde alojar la partitura; alternativa: compartir PDF/imagen (F17)
 
 ### 9.7 Resumen de historias
 
@@ -930,7 +934,7 @@ crear cuenta.
 | E3 Escuchar | 3 | 0 | 0 | 0 | 3 |
 | E4 Abrir y exportar | 5 | 2 | 0 | 0 | 7 |
 | E5 De oído | 7 | 1 | 1 | 0 | 9 |
-| E6 Mis partituras y cuenta | 5 | 2 | 0 | 1 | 8 |
+| E6 Mis partituras, sin login | 5 | 2 | 0 | 1 | 8 |
 | **Total** | **34** | **6** | **1** | **1** | **42** |
 
 ---
@@ -941,7 +945,7 @@ crear cuenta.
 
 | Prioridad | Features |
 |---|---|
-| **Must** | F01 Editor · F02 Instrumentos · F03 Vistas · F04 Reproducción · F05 Importar · F06 Exportar · F07 De oído · F08 Reproductor de audio · F09 Nube · F10 Deshacer/rehacer · F11 Borrador local · F15 Aviso de recorte |
+| **Must** | F01 Editor · F02 Instrumentos · F03 Vistas · F04 Reproducción · F05 Importar · F06 Exportar · F07 De oído · F08 Reproductor de audio · F09 Mis partituras en el dispositivo + respaldo · F10 Deshacer/rehacer · F11 Borrador local · F15 Aviso de recorte |
 | **Should** | F12 Ejemplos (+1 latino) · F13 Enlaces · US-I06 Flauta dulce · US-E09 Partitura sigue al audio · US-L06 Papelera · US-L07 Duplicar |
 | **Could** | F14 Guardar audio |
 | **Won't (MVP)** | Compartir por enlace · Polifonía · Letra · OMR (foto → partitura) · Cambio de tono del audio · Funciones de aula · "Pedir melodía a Claude" (R1) |
@@ -956,7 +960,7 @@ Escala: Alcance = usuarios afectados por trimestre (estimado sobre 1 000 usuario
 | Partitura sigue al audio (US-E09) | 300 | 1 | 80 % | 0.5 | 480 | Should en MVP |
 | Flauta dulce (US-I06) | 150 | 1 | 90 % | 0.1 | 1 350 | Should en MVP |
 | Ejemplo latino (F12) | 500 | 0.5 | 90 % | 0.1 | 2 250 | Should en MVP |
-| Compartir por enlace | 400 | 2 | 70 % | 1.5 | 373 | Primera mejora post-MVP |
+| Compartir por enlace (en la URL, sin servidor) | 400 | 2 | 70 % | 1 | 560 | Primera mejora post-MVP |
 | OMR (foto de partitura → notas) | 500 | 3 | 30 % | 6 | 75 | Investigación post-MVP |
 | Cambiar tono del audio | 200 | 1 | 70 % | 1 | 140 | Post-MVP |
 | Grabar con el micrófono (sin subir archivo) | 400 | 1 | 80 % | 0.5 | 640 | Primera mejora post-MVP (requiere quitar `microphone=()` de la política) |
@@ -992,8 +996,10 @@ Escala: Alcance = usuarios afectados por trimestre (estimado sobre 1 000 usuario
 
 ### 11.2 Para la arquitectura (post-MVP, no aplicar aún)
 
-- **Compartir por enlace:** columna `share_token uuid unique null` en `scores` + función RPC `get_shared_score(token)`
-  `security definer` que devuelva solo columnas públicas. No se agrega al MVP para no tocar RLS sin necesidad.
+- **Compartir por enlace sin servidor:** la partitura se codifica en el fragmento de la URL
+  (`https://…/#p=<partitura comprimida con fflate en base64url>`). El fragmento no se envía al servidor, así que
+  sigue sin haber backend ni login. Una melodía típica (200 notas) ocupa ~1-2 KB. Al abrir el enlace se ofrece
+  "Guardar en mis partituras". Límite práctico de longitud de URL en apps de mensajería por verificar.
 - **Micrófono:** `MediaRecorder` → `decodeAudioData`; cambiar `Permissions-Policy` a `microphone=(self)`.
 
 ### 11.3 Tareas de investigación pendientes

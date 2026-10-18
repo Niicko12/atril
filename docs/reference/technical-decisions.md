@@ -2,7 +2,7 @@
 name: atril-technical-decisions
 status: in-progress
 created: 2026-10-18T12:11:33Z
-updated: 2026-10-18T12:45:27Z
+updated: 2026-10-18T12:51:10Z
 ---
 
 # Technical Decisions - Atril
@@ -21,14 +21,14 @@ updated: 2026-10-18T12:45:27Z
 4. Integraciones
 5. Competidores a Analizar
 6. Arquitectura
-7. Schema de Base de Datos
+7. Persistencia local (IndexedDB)
 8. Interfaces TypeScript
 9. Code Structure Guidelines
 10. Internal Organization Patterns
 11. Patrones de Arquitectura
 12. Máquinas de Estado
 13. Seguridad
-14. APIs (Supabase)
+14. APIs
 15. Performance
 16. Testing Requirements per Layer
 17. Quality Enforcement Rules
@@ -52,7 +52,8 @@ Atril es un editor de partituras para músicos aficionados y estudiantes de habl
 - **Abrir** partituras existentes (MusicXML, .mxl, MIDI, ABC) y **exportarlas** (PDF, PNG, ABC, ZIP para MuseScore).
 - **Sacar canciones de oído** a partir de un audio: detección de tono de una voz sola, melodía principal de una mezcla,
   o separación melodía/bajo/acordes con el modelo Basic Pitch ejecutado en el navegador.
-- **Guardar** sus partituras en la nube asociadas a su cuenta.
+- **Guardar** sus partituras automáticamente en su propio dispositivo, sin cuenta ni login, y moverlas a otro
+  dispositivo con un archivo de respaldo.
 
 Existe una versión funcional como artifact de Claude (HTML único, ~2 000 líneas), guardada en `legacy/index.html`
 junto con el modelo Basic Pitch (`legacy/bp-model.json`). Este proyecto la migra a una aplicación independiente,
@@ -80,11 +81,11 @@ manteniendo la paridad de funcionalidades y corrigiendo la deuda técnica detect
 |---|---|---|
 | R1 | No usar la API de Claude/Anthropic ni ninguna IA externa | Decisión del usuario 2026-10-18 |
 | R2 | Toda la lógica musical y de audio corre en el navegador | Sin servidor propio; privacidad del audio |
-| R3 | La app debe funcionar sin cuenta para editar, escuchar y exportar | Fricción mínima; la cuenta solo es para la nube |
+| R3 | **Sin login ni cuentas.** No hay usuarios, contraseñas, OAuth ni identidad | Decisión del usuario 2026-10-18 |
 | R4 | UI y textos en español | Público objetivo |
 | R5 | `legacy/index.html` no se modifica | Es la referencia del comportamiento |
 | R6 | Licencias compatibles con uso comercial (MIT, Apache-2.0, BSD) | Basic Pitch es Apache-2.0, abcjs es MIT |
-| R7 | **Todo con planes gratuitos (US$0/mes):** GitHub (repositorio + Actions), Vercel Hobby, Supabase Free | Decisión del usuario 2026-10-18 (ver 2.6) |
+| R7 | **Todo con planes gratuitos (US$0/mes):** GitHub (repositorio + Actions) y Vercel Hobby. Sin backend | Decisión del usuario 2026-10-18 (ver 2.5) |
 | R8 | Código en GitHub y despliegue en Vercel desde `main` | Decisión del usuario 2026-10-18 |
 
 ### 1.5 No-objetivos del MVP
@@ -92,6 +93,7 @@ manteniendo la paridad de funcionalidades y corrigiendo la deuda técnica detect
 - Edición polifónica (varias voces, acordes en el pentagrama, sistemas de piano a dos manos).
 - Tresillos al escribir, ligaduras manuales, letra, repeticiones, casillas, dinámicas, articulaciones.
 - Colaboración en tiempo real o compartir partituras públicas.
+- Sincronización automática entre dispositivos (requeriría identidad; ver R3). Se reemplaza por el respaldo en archivo.
 - App nativa o instalable (PWA completa queda para después; sí se guarda un borrador local).
 - "Pedir melodía a Claude" (eliminado por R1).
 
@@ -116,13 +118,17 @@ manteniendo la paridad de funcionalidades y corrigiendo la deuda técnica detect
 
 ### 2.2 Backend
 
-| Pieza | Elección | Justificación |
-|---|---|---|
-| Plataforma | Supabase | Postgres + Auth + Storage gestionados; RLS evita escribir un servidor |
-| Base de datos | PostgreSQL 15 (Supabase) | JSONB para las notas, constraints y triggers |
-| Auth | Supabase Auth: enlace mágico por email + Google OAuth | Sin contraseñas que recordar; Google es común en el público objetivo |
-| Storage | Bucket privado `audio` | Guardar audios de "De oído" para reabrirlos (opcional, ver 3.3) |
-| Lógica de servidor | Ninguna (solo RLS, constraints y triggers) | R2; menos superficie de ataque |
+**No hay backend** (decisión 2026-10-18: sin login, R3). Consecuencias:
+
+| Antes (con Supabase) | Ahora |
+|---|---|
+| Postgres con tabla `scores` por usuario | IndexedDB en el navegador del usuario (sección 7) |
+| Supabase Auth | Nada: no hay identidad |
+| Supabase Storage para audios (F14) | Audio guardado en IndexedDB del dispositivo (F14 pasa a ser local) |
+| Sincronización entre dispositivos | Archivo de respaldo exportable/importable (F09) |
+| RLS, migraciones SQL, pgTAP | No aplica |
+
+La app es un **sitio 100 % estático**: HTML, JS, CSS, el modelo de Basic Pitch y fuentes.
 
 ### 2.3 Hosting
 
@@ -131,9 +137,8 @@ manteniendo la paridad de funcionalidades y corrigiendo la deuda técnica detect
 - **Justificación:** despliegue por push, preview por rama, CDN global para el modelo y las librerías.
 - **Dominios/entornos:**
   - `main` → producción.
-  - Cualquier otra rama → preview con el proyecto Supabase de desarrollo.
-- **Variables de entorno (públicas, prefijo `VITE_`):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
-  No hay secretos en el frontend; la clave anónima es pública por diseño y la seguridad recae en RLS.
+  - Cualquier otra rama → preview.
+- **Variables de entorno:** ninguna. No hay secretos ni servicios externos.
 
 ### 2.4 Herramientas de desarrollo
 
@@ -146,40 +151,31 @@ manteniendo la paridad de funcionalidades y corrigiendo la deuda técnica detect
 | Testing Library | Tests de componentes |
 | Playwright | E2E en Chromium y WebKit (iPhone) |
 | dependency-cruiser | Validar dirección de capas y ciclos |
-| Supabase CLI | Migraciones SQL versionadas, tipos generados |
+| fake-indexeddb | IndexedDB en tests de Node |
 
 > Las versiones exactas se fijan en `package.json` al crear el proyecto y se registran en `docs/development/current/`.
 
 ### 2.5 Costos: todo en planes gratuitos (R7)
 
-| Servicio | Plan | Límites relevantes (verificar en la página oficial al crear las cuentas) | Cómo se respeta |
+| Servicio | Plan | Límites relevantes (verificar en la página oficial) | Cómo se respeta |
 |---|---|---|---|
 | GitHub | Free | Repos privados ilimitados; Actions ~2 000 min/mes en repos privados | CI corta (Playwright solo en PR a `main`); si se agotan los minutos, hacer el repo público o correr E2E local |
 | Vercel | Hobby | Uso personal / no comercial; ancho de banda mensual limitado | Sitio estático, modelo con caché inmutable; si Atril se monetiza hay que pasar a un plan pago (decisión futura) |
-| Supabase | Free | 2 proyectos; ~500 MB de BD; ~1 GB de Storage; ~50 MB por archivo; **se pausa tras ~1 semana sin actividad**; **sin backups automáticos**; email de Auth integrado con límite muy bajo por hora | Ver mitigaciones abajo |
-| Email de login | Gratis | El SMTP integrado de Supabase solo sirve para pruebas | **Google OAuth es el método principal**; enlace mágico con SMTP gratuito externo (p. ej. Resend free) si se necesita volumen; verificar límites |
 | Dominio | Subdominio gratis `*.vercel.app` | — | Sin dominio propio en el MVP |
+| Backend / base de datos / login | — | No existen | R3 |
 
-Mitigaciones del plan gratuito de Supabase:
-
-1. **Pausa por inactividad:** workflow de GitHub Actions programado (cada 3 días) que hace una consulta de lectura
-   anónima a la API REST (`/rest/v1/` con la clave anónima). No consume minutos relevantes.
-2. **Sin backups:** workflow semanal de GitHub Actions con `supabase db dump` (solo esquema + datos de `scores` y
-   `profiles`), cifrado con `age` usando una clave guardada en GitHub Secrets, subido como artifact con retención de
-   7 días. Antes de cada migración en producción, dump manual.
-3. **Dos proyectos máximo:** `atril-dev` y `atril-prod`; no se crean proyectos extra por rama.
-4. **Storage de 1 GB total:** F14 queda con cuota de **20 MB por archivo y 100 MB por usuario**; si el uso se acerca
-   al límite, F14 se desactiva con el flag `features.audioUpload`.
+Costo total: **US$0/mes**, sin cuentas de terceros además de GitHub y Vercel.
 
 ### 2.6 Alternativas descartadas
 
 | Alternativa | Por qué no |
 |---|---|
-| Seguir como artifact | El usuario quiere cuentas y partituras en la nube independientes de Claude |
+| Seguir como artifact | El usuario quiere una app propia, independiente de Claude, en GitHub y Vercel |
 | Next.js | No se necesita SEO ni SSR en el MVP; añade complejidad de servidor |
 | VexFlow / OpenSheetMusicDisplay | Más potentes para polifonía, pero abcjs ya resuelve el MVP y la conversión a ABC existe |
 | Redux Toolkit | Más ceremonia que Zustand para un store principal |
-| Firebase | Supabase da SQL, RLS y migraciones versionadas |
+| Supabase / Firebase | Requieren identidad para separar datos de usuarios; el usuario no quiere login (R3) |
+| Login anónimo (Supabase anonymous sign-in) | Da identidad por dispositivo, que es lo mismo que IndexedDB pero con servidor, costo de mantenimiento y sin sincronizar entre equipos |
 | Tone.js | El sintetizador propio de legacy ya está afinado; añadirlo duplicaría lógica |
 | Spotify Basic Pitch npm (`@spotify/basic-pitch`) | Válido; se evalúa en semana 1. Si funciona con el modelo empaquetado, reemplaza el código minificado embebido |
 
@@ -199,12 +195,12 @@ Mitigaciones del plan gratuito de Supabase:
 | F06 | Exportar PDF, PNG, ABC, ZIP MuseScore | Must | Sí | Descarga nativa del navegador |
 | F07 | De oído: YIN (voz sola), melodía en mezcla, Basic Pitch (partes) | Must | Sí | En Web Worker; corrige deuda 4, 5, 6 |
 | F08 | Reproductor de audio: onda, A-B, velocidad sin cambio de tono | Must | Sí | WSOLA en Worker |
-| F09 | Cuentas (enlace mágico + Google) y "Mis partituras" en la nube | Must | No (era localStorage) | Corrige deuda 1 |
+| F09 | "Mis partituras" con guardado automático en el dispositivo + respaldo en archivo | Must | Parcial (era localStorage) | Corrige deuda 1 sin login (R3) |
 | F10 | Deshacer/rehacer completo (notas + metadatos) | Must | Parcial | Corrige deuda 8 |
-| F11 | Borrador local automático (sin cuenta) | Must | Sí | IndexedDB en vez de localStorage |
+| F11 | Recordar la partitura abierta al volver | Must | Sí | IndexedDB en vez de localStorage |
 | F12 | Ejemplos de dominio público | Should | Sí | + "La cucaracha" (tradicional mexicana, aprobado 2026-10-18) |
 | F13 | Enlaces a sitios de partituras | Should | Sí | — |
-| F14 | Guardar el audio original junto a la partitura | Could | No | Storage; solo si sobra tiempo |
+| F14 | Guardar el audio original junto a la partitura | Could | No | En IndexedDB del dispositivo; solo si sobra tiempo |
 | F15 | Aviso al recortar notas en "Mover todo" | Must | No | Corrige deuda 7 |
 | F16 | La partitura sigue al audio original en "De oído" (US-E09) | Should | No | Aprobado 2026-10-18 |
 | F17 | Compartir PDF/imagen con el menú del sistema (WhatsApp) | Should | No | Aprobado 2026-10-18 |
@@ -240,22 +236,16 @@ duran 100 años tras la muerte del autor.
 
 ### 3.3 Criterio para F14
 
-F14 entra solo si al terminar la semana 5 el resto de Must está aprobado. El schema (tabla `audio_sources`) se crea
-desde el inicio para no migrar después, pero la UI queda oculta tras el flag `features.audioUpload`.
-
----
+F14 entra solo si al terminar la semana 5 el resto de Must está aprobado. El store `audio` de IndexedDB (7.3) se
+crea desde la versión 1 de la base para no migrar después; la UI queda oculta tras el flag `features.audioUpload`.
 
 ## 4. Integraciones
 
 | Servicio | Uso | Notas |
 |---|---|---|
-| Supabase Auth | Enlace mágico, Google OAuth, sesión | Redirect URLs: producción y previews de Vercel |
-| Supabase Postgres | Tablas `profiles`, `scores`, `audio_sources` | RLS por `owner_id` |
-| Supabase Storage | Bucket privado `audio` | F14; límite 20 MB por archivo y 100 MB por usuario (plan gratuito, 2.5) |
-| Vercel | Hosting estático | Cabeceras de caché y CSP en `vercel.json` |
-| IA externa | **Ninguna** (R1) | Basic Pitch corre local |
-
----
+| GitHub | Repositorio `Niicko12/atril` (privado) y CI | Gratis |
+| Vercel | Hosting estático, despliegue al hacer push a `main` | Hobby, gratis |
+| Backend / login / IA externa | **Ninguno** (R1, R3) | Basic Pitch corre local |
 
 ## 5. Competidores a Analizar
 
@@ -279,7 +269,7 @@ desde el inicio para no migrar después, pero la UI queda oculta tras el flag `f
 │  │  AppShell                                                │         │
 │  │  ├─ ScoreMetaForm   ├─ ViewBar      ├─ ScoreSheet (abcjs)│         │
 │  │  ├─ EarPanel        ├─ ExportBar    ├─ InputDock          │         │
-│  │  └─ Overlays: Find/Open · Library · Image · Auth         │         │
+│  │  └─ Overlays: Find/Open · Library · Image · Backup       │         │
 │  └───────────────┬──────────────────────────────────────────┘         │
 │                  │ hooks                                              │
 │  ┌───────────────▼──────────── Business ─────────────────────┐        │
@@ -296,13 +286,12 @@ desde el inicio para no migrar después, pero la UI queda oculta tras el flag `f
 │  └────────────────────────────────────┘  │  │ (TF.js)            │     │
 │                                          │  │ stretch.worker     │     │
 │  Web Audio API ◄── playback-engine       │  │ (WSOLA)            │     │
-│  IndexedDB ◄────── draft-service         │  └────────────────────┘     │
+│  IndexedDB ◄────── library (partituras,  │  └────────────────────┘     │
+│                    preferencias, audios) │                             │
 └──────────────────────────────────────────┼─────────────────────────────┘
-                                           │ HTTPS (supabase-js)
-                         ┌─────────────────▼────────────────┐
-                         │ Supabase                         │
-                         │  Auth · Postgres (RLS) · Storage │
-                         └──────────────────────────────────┘
+                                           │
+                                (sin servidor: sitio estático en Vercel;
+                                 los datos nunca salen del dispositivo)
 ```
 
 ### 6.2 Capas
@@ -313,7 +302,7 @@ desde el inicio para no migrar después, pero la UI queda oculta tras el flag `f
 | Business | `src/modules/*/hooks`, `*/services`, `*/store` | Estado, efectos, IO | Core, Shared, Data |
 | Workers | `src/workers` | Cómputo pesado | Core |
 | Core | `src/core` | Funciones puras sin DOM ni React | Solo Core |
-| Data/Infra | `src/infra` | Cliente Supabase, IndexedDB, descargas | Shared types |
+| Data/Infra | `src/infra` | IndexedDB, descargas, compartir | Shared types |
 | Shared | `src/shared` | Componentes UI genéricos, utils, tipos comunes | Shared |
 
 Regla central: **`src/core` no importa nada fuera de `src/core`**, ni `window`, ni `document`, ni React. Así se
@@ -332,8 +321,7 @@ pointerdown en tecla (InputDock)
      → core.buildAbc(score, instrument, view) memoizado
      → abcjs.renderAbc (debounce por frame: requestAnimationFrame)
      → reconstruye noteElementMap (índice de nota → elementos SVG)
-  → draftService.save(score)  (debounce 800 ms, IndexedDB)
-  → si la partitura está en la nube: librarySync.markDirty() (autoguardado 5 s, ver 12.4)
+  → library.autosave(score)  (debounce 800 ms, IndexedDB; ver 11.4)
 ```
 
 ### 6.4 Flujo de datos: De oído (partes)
@@ -353,15 +341,18 @@ EarPanel: "Escribir la melodía sola" con modo "parts"
   → EarPanel muestra partes → "Abrir" → core.quantize → scoreStore.replaceScore(importado)
 ```
 
-### 6.5 Flujo de datos: guardar en la nube
+### 6.5 Flujo de datos: guardado automático y respaldo
 
 ```
-Usuario sin sesión pulsa "Guardar"
-  → AuthOverlay (enlace mágico / Google) → vuelve con sesión
-  → libraryService.upsert(score)  // INSERT o UPDATE con control de versión
-     → ok: score.remote = {id, version}; toast "Guardada"
-     → conflicto (version distinta): ConflictDialog (12.4)
-     → sin red: queda en cola local (draft) y estado "pendiente"
+Cualquier cambio en la partitura (revision++)
+  → library.autosave (debounce 800 ms)
+     → si la partitura nunca se editó (ejemplo intacto): no se guarda
+     → si no: put en IndexedDB `scores` con updatedAt = ahora
+     → indicador "Guardada en este dispositivo"
+"Mis partituras" → "Hacer copia de respaldo"
+  → leer todos los scores (y audios si F14) → ZIP `atril-respaldo-AAAA-MM-DD.zip` → descargar o compartir
+Otro dispositivo → "Mis partituras" → "Restaurar copia"
+  → leer ZIP → validar → fusionar por id (gana la de updatedAt más reciente) → informe "N nuevas, M actualizadas"
 ```
 
 ### 6.6 Estructura de carpetas
@@ -374,9 +365,6 @@ atril/
 │   └── models/basic-pitch/
 │       ├── model.json            # topología + manifest (sin base64)
 │       └── group1-shard1of1.bin  # pesos binarios (~742 KB)
-├── supabase/
-│   ├── migrations/               # SQL versionado (sección 7)
-│   └── seed.sql                  # ejemplos de dominio público
 ├── scripts/
 │   ├── split-bp-model.mjs        # convierte legacy/bp-model.json → public/models/...
 │   └── legacy-fixtures.mjs       # genera fixtures dorados desde legacy (16.2)
@@ -384,7 +372,7 @@ atril/
 │   ├── main.tsx
 │   ├── app/
 │   │   ├── app-shell.tsx
-│   │   ├── providers.tsx         # QueryClient, AuthProvider
+│   │   ├── providers.tsx         # QueryClient
 │   │   └── theme.css             # tokens portados de legacy
 │   ├── core/                     # PURO
 │   │   ├── theory/
@@ -433,10 +421,8 @@ atril/
 │   │   ├── stretch.worker.ts
 │   │   └── protocol.ts           # tipos de mensajes
 │   ├── infra/
-│   │   ├── supabase-client.ts
-│   │   ├── db-types.ts           # generado por Supabase CLI
-│   │   ├── idb.ts                # wrapper IndexedDB
-│   │   └── download.ts           # saveBlob
+│   │   ├── idb.ts                # base, versiones y migraciones (sección 7)
+│   │   └── download.ts           # saveBlob, shareBlob
 │   ├── modules/
 │   │   ├── editor/               # store, input surfaces, tools
 │   │   ├── score-view/           # ScoreSheet, status
@@ -444,8 +430,7 @@ atril/
 │   │   ├── import/               # abrir archivos, pegar ABC, enlaces
 │   │   ├── export/               # PDF, PNG, ZIP, ABC
 │   │   ├── ear/                  # De oído
-│   │   ├── library/              # Mis partituras, sync
-│   │   └── auth/
+│   │   └── library/              # Mis partituras, autoguardado, respaldo
 │   └── shared/
 │       ├── components/           # Button, Segmented, Overlay, Toast, Field
 │       ├── hooks/                # useDebounce, useResizeWidth
@@ -466,343 +451,163 @@ atril/
 | ADR-002 | ABC como representación intermedia para dibujar | Dibujar SVG propio | abcjs ya resuelve grabado, tablatura y clics |
 | ADR-003 | Núcleo puro en `src/core` | Lógica en componentes | Testeable en Node y reutilizable en Workers |
 | ADR-004 | Workers para todo análisis de audio | Hilo principal con `setTimeout` (legacy) | Evita congelar la UI en móviles (deuda 5) |
-| ADR-005 | Notas como JSONB en `scores.notes` | Tabla `notes` normalizada | Se leen y escriben siempre completas; ≤ 3 000 elementos; menos round-trips |
-| ADR-006 | Control de concurrencia optimista por `version` | Último gana | Evita pisar cambios entre dos dispositivos |
-| ADR-007 | Borrador local en IndexedDB | localStorage | Más cuota, asíncrono, no bloquea el hilo |
+| ADR-005 | Cada partitura es un solo registro con sus notas | Notas en registros separados | Se leen y escriben siempre completas; ≤ 3 000 elementos |
+| ADR-006 | Último guardado gana + aviso entre pestañas (BroadcastChannel) | Bloqueo por pestaña | Sin servidor no hay conflictos entre dispositivos; solo entre pestañas del mismo navegador |
+| ADR-007 | Persistencia en IndexedDB | localStorage | Más cuota, asíncrono, guarda Blobs (audio), no bloquea el hilo |
 | ADR-008 | Modelo Basic Pitch como archivos estáticos binarios | JSON con base64 (legacy) | −25 % de tamaño, caché HTTP, sin `atob` de 1 MB |
 | ADR-009 | Sin router en el MVP | React Router | Una pantalla; los paneles son estado |
-| ADR-010 | Editor usable sin cuenta | Login obligatorio | R3 |
+| ADR-010 | Sin login ni backend | Supabase con cuentas | R3 (decisión del usuario); privacidad; US$0 |
+| ADR-012 | Respaldo en archivo para moverse entre dispositivos | Sincronización en la nube | No requiere identidad |
+| ADR-013 | Pedir almacenamiento persistente y sugerir instalar en la pantalla de inicio | Nada | Safari puede borrar datos de sitios no visitados en 7 días (riesgo RK9) |
 
 ---
 
-## 7. Schema de Base de Datos
+## 7. Persistencia local (IndexedDB)
 
-Proyecto Supabase con dos entornos: `atril-dev` (previews y local) y `atril-prod` (`main`). Todas las tablas viven en
-el esquema `public` con RLS activado. Las migraciones se versionan en `supabase/migrations/`.
+Sin backend (R3), los datos viven en **IndexedDB** del navegador, en el dispositivo del usuario. Esta sección
+reemplaza el schema de Postgres que existía antes de la decisión del 2026-10-18.
 
-### 7.1 Diagrama entidad-relación
+### 7.1 Base de datos
+
+| Propiedad | Valor |
+|---|---|
+| Nombre | `atril` |
+| Versión inicial | 1 |
+| Librería | Wrapper propio mínimo en `infra/idb.ts` sobre la API nativa (sin dependencias); `fake-indexeddb` en tests |
+| Origen | Uno por dominio: producción (`*.vercel.app`) y cada preview tienen bases separadas |
+
+### 7.2 Diagrama
 
 ```
-auth.users (Supabase)
-   │ 1
-   │
-   │ 1
-profiles ──────────────┐
-   │ 1                 │ 1
-   │                   │
-   │ N                 │ N
-scores ◄──────── audio_sources
-   (score_id nullable, ON DELETE SET NULL)
+┌──────────────┐ 1      N ┌──────────────┐
+│   scores     │◄─────────│    audio     │   (F14, opcional)
+│ (keyPath id) │ scoreId  │ (keyPath id) │
+└──────────────┘          └──────────────┘
+┌──────────────┐
+│    prefs     │  clave-valor (inputMode, lastOpenId, backupReminder…)
+└──────────────┘
 ```
 
-### 7.2 Tipos enumerados
+### 7.3 Object stores
 
-```sql
-create type public.score_source as enum (
-  'manual',      -- escrita a mano en Atril
-  'sample',      -- cargada de los ejemplos
-  'musicxml',    -- importada de .musicxml/.xml/.mxl
-  'midi',        -- importada de .mid/.midi
-  'abc',         -- importada o pegada en ABC
-  'ear_solo',    -- De oído: voz o instrumento solo (YIN)
-  'ear_mix',     -- De oído: melodía principal de una mezcla
-  'ear_parts'    -- De oído: separación con Basic Pitch
-);
+#### `scores`
 
-create type public.input_mode as enum ('piano', 'fret', 'names');
-```
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| id | string (UUID v4, `crypto.randomUUID()`) | Sí | keyPath |
+| title | string ≤ 120 | Sí | "Sin título" si está vacío |
+| composer | string ≤ 120 | Sí | Puede ser "" |
+| instrumentId | InstrumentId | Sí | |
+| key | −6..6 | Sí | Sonido real |
+| meter | MeterId | Sí | |
+| tempo | 30..240 | Sí | |
+| showNames, showTab | boolean | Sí | |
+| notes | Note[] ≤ 3 000 | Sí | Formato de legacy `{p, d, c?}` |
+| source | ScoreSource | Sí | |
+| createdAt, updatedAt | string ISO 8601 UTC | Sí | |
+| deletedAt | string ISO 8601 \| null | Sí | Papelera |
+| schemaVersion | number | Sí | Versión del formato del registro (1) |
 
-### 7.3 Tabla: profiles
+Índices: `by_updated` (`updatedAt`), `by_deleted` (`deletedAt`).
 
-#### Propósito
-Datos y preferencias del usuario. Una fila por usuario de `auth.users`, creada por trigger al registrarse.
+#### `audio` (F14)
 
-#### Columnas
-| Columna | Tipo | Nullable | Default | Descripción |
-|---|---|---|---|---|
-| id | UUID | No | — | PK y FK a `auth.users.id` |
-| display_name | TEXT | Sí | NULL | Nombre visible (máx. 80) |
-| default_instrument | TEXT | No | `'piano'` | ID del catálogo de instrumentos |
-| input_mode | input_mode | No | `'piano'` | Última forma de escribir usada |
-| created_at | TIMESTAMPTZ | No | now() | |
-| updated_at | TIMESTAMPTZ | No | now() | |
-
-#### Constraints
-- `CHECK (char_length(display_name) <= 80)`
-- `CHECK (default_instrument ~ '^[a-z]{2,20}$')` — el catálogo vive en el frontend; se valida forma, no pertenencia.
-
-#### Índices
-- PRIMARY KEY (id)
-
-#### Foreign Keys
-- id → auth.users.id ON DELETE CASCADE
-
-#### Triggers
-- `set_updated_at` BEFORE UPDATE
-- `on_auth_user_created` AFTER INSERT ON auth.users → inserta perfil
-
-### 7.4 Tabla: scores
-
-#### Propósito
-Cada partitura guardada en la nube. Las notas se guardan completas como JSONB (ADR-005).
-
-#### Columnas
-| Columna | Tipo | Nullable | Default | Descripción |
-|---|---|---|---|---|
-| id | UUID | No | gen_random_uuid() | PK |
-| owner_id | UUID | No | auth.uid() | FK a profiles.id |
-| title | TEXT | No | `'Sin título'` | Máx. 120 caracteres |
-| composer | TEXT | No | `''` | Máx. 120 |
-| instrument_id | TEXT | No | `'piano'` | ID del catálogo |
-| key_fifths | SMALLINT | No | 0 | Tonalidad en sonido real, −6..6 |
-| meter | TEXT | No | `'4/4'` | Uno de los 6 compases soportados |
-| tempo | SMALLINT | No | 100 | Negras por minuto, 30..240 |
-| show_names | BOOLEAN | No | false | Mostrar nombres de notas |
-| show_tab | BOOLEAN | No | false | Mostrar tablatura |
-| notes | JSONB | No | `'[]'` | Arreglo de `Note` (8.1) |
-| note_count | INTEGER | No | generada | `jsonb_array_length(notes)` (STORED) |
-| source | score_source | No | `'manual'` | Origen |
-| version | INTEGER | No | 1 | Incrementa en cada UPDATE (ADR-006) |
-| deleted_at | TIMESTAMPTZ | Sí | NULL | Borrado suave (papelera 30 días) |
-| created_at | TIMESTAMPTZ | No | now() | |
-| updated_at | TIMESTAMPTZ | No | now() | |
-
-#### Constraints
-- `CHECK (char_length(title) BETWEEN 1 AND 120)`
-- `CHECK (char_length(composer) <= 120)`
-- `CHECK (instrument_id ~ '^[a-z]{2,20}$')`
-- `CHECK (key_fifths BETWEEN -6 AND 6)`
-- `CHECK (meter IN ('4/4','3/4','2/4','6/8','3/8','12/8'))`
-- `CHECK (tempo BETWEEN 30 AND 240)`
-- `CHECK (jsonb_typeof(notes) = 'array')`
-- `CHECK (jsonb_array_length(notes) <= 3000)`
-- `CHECK (pg_column_size(notes) <= 262144)` — 256 KB, holgado para 3 000 notas
-- Validación estructural de cada nota: función `public.valid_notes(jsonb)` (7.7) usada en CHECK.
-
-#### Índices
-- PRIMARY KEY (id)
-- `idx_scores_owner_updated` ON scores(owner_id, updated_at DESC) WHERE deleted_at IS NULL — lista de "Mis partituras"
-- `idx_scores_owner_deleted` ON scores(owner_id, deleted_at) WHERE deleted_at IS NOT NULL — papelera
-
-#### Foreign Keys
-- owner_id → profiles.id ON DELETE CASCADE
-
-#### Triggers
-- `set_updated_at` BEFORE UPDATE
-- `bump_version` BEFORE UPDATE: `NEW.version := OLD.version + 1`
-- `protect_owner` BEFORE UPDATE: impide cambiar `owner_id`, `created_at`
-
-### 7.5 Tabla: audio_sources (F14, opcional)
-
-#### Propósito
-Referencia a un audio subido a Storage para reabrirlo en "De oído". El archivo vive en el bucket privado `audio`
-bajo la ruta `{owner_id}/{id}.{ext}`.
-
-#### Columnas
-| Columna | Tipo | Nullable | Default | Descripción |
-|---|---|---|---|---|
-| id | UUID | No | gen_random_uuid() | PK |
-| owner_id | UUID | No | auth.uid() | FK a profiles.id |
-| score_id | UUID | Sí | NULL | Partitura derivada |
-| storage_path | TEXT | No | — | Ruta en el bucket |
-| file_name | TEXT | No | — | Nombre original (máx. 200) |
-| mime_type | TEXT | No | — | `audio/*` o `video/*` |
-| size_bytes | INTEGER | No | — | ≤ 20 971 520 (20 MB) |
-| duration_sec | REAL | No | — | > 0 y ≤ 900 |
-| created_at | TIMESTAMPTZ | No | now() | |
-
-#### Constraints
-- `CHECK (mime_type ~ '^(audio|video)/')`
-- `CHECK (size_bytes BETWEEN 1 AND 20971520)`
-- `CHECK (duration_sec > 0 AND duration_sec <= 900)`
-- `CHECK (storage_path = owner_id::text || '/' || id::text || substring(storage_path from '\.[a-z0-9]{2,4}$'))`
-- UNIQUE (storage_path)
-
-#### Índices
-- PRIMARY KEY (id)
-- `idx_audio_owner_created` ON audio_sources(owner_id, created_at DESC)
-- `idx_audio_score` ON audio_sources(score_id)
-
-#### Foreign Keys
-- owner_id → profiles.id ON DELETE CASCADE
-- score_id → scores.id ON DELETE SET NULL
-
-### 7.6 Migración inicial (borrador)
-
-```sql
--- 0001_init.sql
-create extension if not exists pgcrypto;
-
-create type public.score_source as enum ('manual','sample','musicxml','midi','abc','ear_solo','ear_mix','ear_parts');
-create type public.input_mode as enum ('piano','fret','names');
-
-create or replace function public.set_updated_at() returns trigger
-language plpgsql as $$
-begin
-  new.updated_at := now();
-  return new;
-end $$;
-
--- profiles
-create table public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  display_name text check (char_length(display_name) <= 80),
-  default_instrument text not null default 'piano' check (default_instrument ~ '^[a-z]{2,20}$'),
-  input_mode public.input_mode not null default 'piano',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create trigger profiles_updated before update on public.profiles
-  for each row execute function public.set_updated_at();
-
-create or replace function public.handle_new_user() returns trigger
-language plpgsql security definer set search_path = public as $$
-begin
-  insert into public.profiles (id, display_name)
-  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', null));
-  return new;
-end $$;
-create trigger on_auth_user_created after insert on auth.users
-  for each row execute function public.handle_new_user();
-
--- notes validation
-create or replace function public.valid_notes(n jsonb) returns boolean
-language sql immutable as $$
-  select coalesce(bool_and(
-    jsonb_typeof(e) = 'object'
-    and (e ? 'd') and jsonb_typeof(e->'d') = 'number'
-    and (e->>'d')::numeric between 1 and 48
-    and (e->>'d')::numeric = floor((e->>'d')::numeric)
-    and (e ? 'p')
-    and (jsonb_typeof(e->'p') = 'null'
-         or (jsonb_typeof(e->'p') = 'number' and (e->>'p')::int between 0 and 127))
-    and (not (e ? 'c') or (jsonb_typeof(e->'c') = 'string' and char_length(e->>'c') <= 12))
-  ), true)
-  from jsonb_array_elements(n) as e
-$$;
-
--- scores
-create table public.scores (
-  id uuid primary key default gen_random_uuid(),
-  owner_id uuid not null default auth.uid() references public.profiles(id) on delete cascade,
-  title text not null default 'Sin título' check (char_length(title) between 1 and 120),
-  composer text not null default '' check (char_length(composer) <= 120),
-  instrument_id text not null default 'piano' check (instrument_id ~ '^[a-z]{2,20}$'),
-  key_fifths smallint not null default 0 check (key_fifths between -6 and 6),
-  meter text not null default '4/4' check (meter in ('4/4','3/4','2/4','6/8','3/8','12/8')),
-  tempo smallint not null default 100 check (tempo between 30 and 240),
-  show_names boolean not null default false,
-  show_tab boolean not null default false,
-  notes jsonb not null default '[]'::jsonb
-    check (jsonb_typeof(notes) = 'array')
-    check (jsonb_array_length(notes) <= 3000)
-    check (pg_column_size(notes) <= 262144)
-    check (public.valid_notes(notes)),
-  note_count integer generated always as (jsonb_array_length(notes)) stored,
-  source public.score_source not null default 'manual',
-  version integer not null default 1,
-  deleted_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create index idx_scores_owner_updated on public.scores(owner_id, updated_at desc) where deleted_at is null;
-create index idx_scores_owner_deleted on public.scores(owner_id, deleted_at) where deleted_at is not null;
-
-create or replace function public.scores_before_update() returns trigger
-language plpgsql as $$
-begin
-  if new.owner_id <> old.owner_id or new.created_at <> old.created_at then
-    raise exception 'owner_id y created_at no se pueden cambiar' using errcode = '42501';
-  end if;
-  new.version := old.version + 1;
-  new.updated_at := now();
-  return new;
-end $$;
-create trigger scores_before_update before update on public.scores
-  for each row execute function public.scores_before_update();
-
--- audio_sources (F14)
-create table public.audio_sources (
-  id uuid primary key default gen_random_uuid(),
-  owner_id uuid not null default auth.uid() references public.profiles(id) on delete cascade,
-  score_id uuid references public.scores(id) on delete set null,
-  storage_path text not null unique,
-  file_name text not null check (char_length(file_name) <= 200),
-  mime_type text not null check (mime_type ~ '^(audio|video)/'),
-  size_bytes integer not null check (size_bytes between 1 and 20971520),
-  duration_sec real not null check (duration_sec > 0 and duration_sec <= 900),
-  created_at timestamptz not null default now()
-);
-create index idx_audio_owner_created on public.audio_sources(owner_id, created_at desc);
-create index idx_audio_score on public.audio_sources(score_id);
-```
-
-### 7.7 Row Level Security
-
-```sql
--- 0002_rls.sql
-alter table public.profiles enable row level security;
-alter table public.scores enable row level security;
-alter table public.audio_sources enable row level security;
-
-create policy "perfil propio: leer" on public.profiles
-  for select using (id = auth.uid());
-create policy "perfil propio: actualizar" on public.profiles
-  for update using (id = auth.uid()) with check (id = auth.uid());
-
-create policy "partituras propias: leer" on public.scores
-  for select using (owner_id = auth.uid());
-create policy "partituras propias: crear" on public.scores
-  for insert with check (owner_id = auth.uid());
-create policy "partituras propias: actualizar" on public.scores
-  for update using (owner_id = auth.uid()) with check (owner_id = auth.uid());
-create policy "partituras propias: borrar" on public.scores
-  for delete using (owner_id = auth.uid());
-
-create policy "audios propios: leer" on public.audio_sources
-  for select using (owner_id = auth.uid());
-create policy "audios propios: crear" on public.audio_sources
-  for insert with check (owner_id = auth.uid());
-create policy "audios propios: borrar" on public.audio_sources
-  for delete using (owner_id = auth.uid());
-
--- Storage: bucket privado 'audio'
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('audio', 'audio', false, 20971520, array['audio/*','video/mp4','video/quicktime']);
-
-create policy "audio propio: leer" on storage.objects
-  for select using (bucket_id = 'audio' and (storage.foldername(name))[1] = auth.uid()::text);
-create policy "audio propio: subir" on storage.objects
-  for insert with check (bucket_id = 'audio' and (storage.foldername(name))[1] = auth.uid()::text);
-create policy "audio propio: borrar" on storage.objects
-  for delete using (bucket_id = 'audio' and (storage.foldername(name))[1] = auth.uid()::text);
-```
-
-### 7.8 Mantenimiento
-
-- **Papelera:** las partituras con `deleted_at` > 30 días se purgan con un `pg_cron` diario
-  (`delete from scores where deleted_at < now() - interval '30 days'`). Si `pg_cron` no está disponible en el plan,
-  la purga se hace al abrir "Mis partituras" (borrado definitivo de las propias vencidas).
-- **Audios huérfanos:** al borrar una fila de `audio_sources`, el cliente borra primero el objeto de Storage. Un
-  reporte semanal manual (SQL) lista objetos sin fila.
-- **Backups:** el plan gratuito no tiene backups automáticos; se usa el workflow semanal de 2.5 y un dump manual antes de cada migración en producción.
-
-### 7.9 Volumen esperado (MVP)
-
-| Métrica | Estimado | Holgura del diseño |
+| Campo | Tipo | Descripción |
 |---|---|---|
-| Usuarios | < 1 000 | — |
-| Partituras por usuario | 5-50 | Índice por owner |
-| Tamaño de `notes` | 2-40 KB | Límite 256 KB |
-| Audios (F14) | < 20 por usuario | 20 MB c/u, 100 MB por usuario |
+| id | string (UUID) | keyPath |
+| scoreId | string | Índice `by_score` |
+| fileName | string ≤ 200 | |
+| mimeType | string | `audio/*` o `video/*` |
+| sizeBytes | number ≤ 20 MB | |
+| durationSec | number ≤ 900 | |
+| blob | Blob | El audio original |
+| createdAt | string ISO | |
 
----
+Cuota propia: **200 MB en total** para audios; más → "El espacio para audios está lleno. Borra algún audio
+guardado."
+
+#### `prefs`
+
+| Clave | Valor | Uso |
+|---|---|---|
+| `inputMode` | 'piano' \| 'fret' \| 'names' | Modo de entrada |
+| `defaultInstrument` | InstrumentId | Instrumento de "Nueva" |
+| `lastOpenId` | string \| null | Partitura que se abre al volver |
+| `lastBackupAt` | string ISO \| null | Recordatorio de respaldo |
+| `persistAsked` | boolean | Ya se pidió almacenamiento persistente |
+
+### 7.4 Validación
+
+`validateScore()` (core) se aplica **al leer** (registros corruptos o de versiones futuras se omiten y se informan en
+diagnóstico) y **al escribir**. No hay constraints en la base: la validación vive en el código.
+
+### 7.5 Migraciones
+
+```typescript
+// infra/idb.ts
+const MIGRATIONS: Record<number, (db: IDBDatabase, tx: IDBTransaction) => void> = {
+  1: (db) => {
+    const scores = db.createObjectStore('scores', { keyPath: 'id' });
+    scores.createIndex('by_updated', 'updatedAt');
+    scores.createIndex('by_deleted', 'deletedAt');
+    const audio = db.createObjectStore('audio', { keyPath: 'id' });
+    audio.createIndex('by_score', 'scoreId');
+    db.createObjectStore('prefs');
+  },
+};
+```
+
+- `onupgradeneeded` aplica en orden las migraciones entre la versión antigua y la nueva.
+- `onblocked` (otra pestaña con la versión vieja abierta): aviso "Cierra las otras pestañas de Atril para
+  actualizar."
+
+### 7.6 Durabilidad (riesgo RK9)
+
+Los navegadores pueden borrar datos de sitios en situaciones de poco espacio, y **Safari puede borrar el
+almacenamiento de sitios que el usuario no visita en 7 días** (salvo apps agregadas a la pantalla de inicio).
+Mitigaciones:
+
+1. `navigator.storage.persist()` al guardar la primera partitura (una sola vez).
+2. Manifiesto web mínimo (`manifest.webmanifest`, iconos) para poder **agregar Atril a la pantalla de inicio**; en
+   iPhone se muestra una vez la sugerencia "Agrega Atril a tu pantalla de inicio para que tus partituras no se
+   borren".
+3. Recordatorio de respaldo: si hay ≥ 1 partitura y `lastBackupAt` tiene más de 14 días, aviso discreto en "Mis
+   partituras" con botón "Hacer copia".
+4. Las exportaciones (PDF, ZIP MuseScore) siguen disponibles como respaldo individual.
+
+### 7.7 Formato del archivo de respaldo
+
+`atril-respaldo-AAAA-MM-DD.zip` (fflate):
+
+```
+atril-backup.json          # { format: "atril-backup", version: 1, exportedAt, scores: ScoreRecord[] }
+audio/{id}.{ext}           # solo si F14 y el usuario marca "Incluir audios"
+LEEME.txt                  # cómo restaurar
+```
+
+Restaurar:
+
+| Regla | Detalle |
+|---|---|
+| Validación | `format === 'atril-backup'`, `version ≤ 1`, cada partitura pasa `validateScore` (las inválidas se omiten y se cuentan) |
+| Fusión | Por `id`: si no existe → se agrega; si existe → gana la de `updatedAt` más reciente; empate → se conserva la local |
+| Papelera | Se respeta `deletedAt` del más reciente |
+| Informe | "Restaurada: N nuevas, M actualizadas, K sin cambios, E con errores." |
+| Límite | Archivo ≤ 300 MB; JSON ≤ 20 MB |
+
+### 7.8 Volumen esperado
+
+| Métrica | Estimado | Holgura |
+|---|---|---|
+| Partituras por dispositivo | 5-200 | Índice por fecha |
+| Tamaño por partitura | 2-60 KB | Límite 3 000 notas |
+| Audios (F14) | < 20 | 20 MB c/u, 200 MB total |
 
 ## 8. Interfaces TypeScript
 
-Todos los tipos de dominio viven en `src/core/types/` (un archivo por dominio, ≤ 200 líneas). Los tipos de base de
-datos se generan con `supabase gen types typescript` en `src/infra/db-types.ts` y **nunca** se usan fuera de
-`src/modules/library` y `src/infra`: se convierten a tipos de dominio en el mapper.
+Todos los tipos de dominio viven en `src/core/types/` (un archivo por dominio, ≤ 200 líneas). El formato de registro
+de IndexedDB (`ScoreRecord`) solo se usa en `src/modules/library` e `src/infra`: se convierte a tipos de dominio en
+el mapper.
 
 ### 8.1 Unidades y primitivas (`core/types/units.ts`)
 
@@ -870,18 +675,12 @@ export type ScoreSource =
 
 /** Partitura en edición (lo que maneja el store). */
 export interface Score extends ScoreMeta {
-  /** ID local estable (también para borradores sin nube). */
-  localId: string;
+  /** ID estable (UUID); es también la clave en IndexedDB. */
+  id: string;
   notes: Note[];
   source: ScoreSource;
-  /** Presente si la partitura existe en la nube. */
-  remote?: RemoteRef;
-}
-
-export interface RemoteRef {
-  id: string;
-  version: number;
-  updatedAt: string;
+  /** null hasta el primer guardado automático (p. ej. un ejemplo sin editar). */
+  savedAt: string | null;
 }
 
 /** Fila resumida para "Mis partituras". */
@@ -1148,27 +947,41 @@ export interface PlaybackHandle {
 ### 8.9 Biblioteca (`modules/library/types.ts`)
 
 ```typescript
-import type { Score, ScoreSummary, RemoteRef } from '../../core/types/score';
+import type { Score, ScoreSummary } from '../../core/types/score';
+
+/** Registro tal como se guarda en IndexedDB. */
+export interface ScoreRecord extends Omit<Score, 'savedAt'> {
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  schemaVersion: 1;
+}
 
 export interface ScoreRepository {
   list(): Promise<ScoreSummary[]>;
   listTrash(): Promise<ScoreSummary[]>;
-  get(id: string): Promise<Score>;
-  /** Inserta si no tiene `remote`, si no actualiza con control de versión. */
-  save(score: Score): Promise<RemoteRef>;
+  get(id: string): Promise<Score | null>;
+  /** Inserta o actualiza; devuelve updatedAt. */
+  save(score: Score): Promise<string>;
+  duplicate(id: string): Promise<string>;
   softDelete(id: string): Promise<void>;
   restore(id: string): Promise<void>;
   purge(id: string): Promise<void>;
+  purgeExpired(days: number): Promise<number>;
 }
 
-export type SyncState =
-  | { kind: 'local' }                         // nunca guardada en la nube
-  | { kind: 'saved'; at: string }
-  | { kind: 'dirty' }                         // cambios sin subir
+export interface BackupReport {
+  added: number;
+  updated: number;
+  unchanged: number;
+  invalid: number;
+}
+
+export type SaveState =
+  | { kind: 'unsaved' }                       // ejemplo o partitura nueva sin cambios
   | { kind: 'saving' }
-  | { kind: 'offline' }                       // cambios en cola local
-  | { kind: 'conflict'; remote: RemoteRef }
-  | { kind: 'error'; message: string };
+  | { kind: 'saved'; at: string }
+  | { kind: 'error'; message: string };       // p. ej. cuota llena o IndexedDB no disponible
 ```
 
 ### 8.10 Errores (`shared/errors.ts`)
@@ -1188,12 +1001,10 @@ export type AppErrorCode =
   // exportación
   | 'export_render_failed'
   | 'export_lib_load_failed'
-  // nube
-  | 'auth_required'
-  | 'sync_conflict'
-  | 'sync_offline'
-  | 'sync_validation'
-  | 'sync_unknown'
+  // biblioteca local
+  | 'storage_quota'
+  | 'backup_invalid'
+  | 'backup_too_large'
   // general
   | 'storage_unavailable'
   | 'internal';
@@ -1215,22 +1026,16 @@ export function isAppError(e: unknown): e is AppError {
 }
 ```
 
-### 8.11 Mapper base de datos ↔ dominio (`modules/library/services/score-mapper.ts`)
+### 8.11 Mapper registro ↔ dominio (`modules/library/services/score-mapper.ts`)
 
 ```typescript
-import type { Database } from '../../../infra/db-types';
 import type { Score, ScoreSummary } from '../../../core/types/score';
+import type { ScoreRecord } from '../types';
 
-type Row = Database['public']['Tables']['scores']['Row'];
-type Insert = Database['public']['Tables']['scores']['Insert'];
-
-export function rowToScore(row: Row): Score;          // valida con validateScore()
-export function scoreToInsert(s: Score): Insert;      // sin id/version/owner
-export function rowToSummary(row: Pick<Row, 'id' | 'title' | 'composer' | 'instrument_id'
-  | 'note_count' | 'updated_at' | 'deleted_at'>): ScoreSummary;
+export function recordToScore(r: ScoreRecord): Score;                 // valida con validateScore()
+export function scoreToRecord(s: Score, now: string, prev?: ScoreRecord): ScoreRecord;
+export function recordToSummary(r: ScoreRecord): ScoreSummary;
 ```
-
----
 
 ## 9. Code Structure Guidelines
 
@@ -1315,15 +1120,11 @@ src/modules/
 │   ├── services/          # ear.service.ts (worker client), waveform.ts
 │   ├── types.ts
 │   └── index.ts
-├── library/
-│   ├── components/        # LibraryOverlay, ScoreRow, TrashList, ConflictDialog, SyncBadge
-│   ├── hooks/             # use-score-list, use-autosave-remote
-│   ├── services/          # score-repository.ts, score-mapper.ts, draft.service.ts
-│   ├── types.ts
-│   └── index.ts
-└── auth/
-    ├── components/        # AuthOverlay, UserMenu
-    ├── hooks/             # use-session
+└── library/
+    ├── components/        # LibraryOverlay, ScoreRow, TrashList, BackupPanel, SaveBadge, InstallHint
+    ├── hooks/             # use-score-list, use-autosave, use-tab-guard
+    ├── services/          # score-repository.ts, score-mapper.ts, backup.service.ts, persistence.ts
+    ├── types.ts
     └── index.ts
 ```
 
@@ -1372,8 +1173,7 @@ score-view → editor (store, selectores)
 ear        → editor (replaceScore), playback (contexto de audio)
 import     → editor (replaceScore)
 export     → editor (lectura del store)
-library    → editor (lectura/replaceScore), auth (sesión)
-auth       → (ninguno)
+library    → editor (lectura/replaceScore)
 playback   → (ninguno)
 ```
 
@@ -1501,36 +1301,36 @@ Reglas de core:
 
 ```typescript
 // modules/library/services/score-repository.ts
-import { supabase } from '@/infra/supabase-client';
+import { openDb, tx } from '@/infra/idb';
 import { AppError } from '@/shared/errors';
-import { rowToScore, rowToSummary, scoreToInsert } from './score-mapper';
+import { recordToScore, recordToSummary, scoreToRecord } from './score-mapper';
 import type { ScoreRepository } from '../types';
 
-const SUMMARY_COLUMNS = 'id,title,composer,instrument_id,note_count,updated_at,deleted_at';
-
-export function createScoreRepository(client = supabase): ScoreRepository {
+export function createScoreRepository(open = openDb, now = () => new Date().toISOString()): ScoreRepository {
   return {
     async list() {
-      const { data, error } = await client.from('scores').select(SUMMARY_COLUMNS)
-        .is('deleted_at', null).order('updated_at', { ascending: false });
-      if (error) throw toAppError(error);
-      return data.map(rowToSummary);
+      const db = await open();
+      const all = await tx(db, 'scores', 'readonly', (st) => st.index('by_updated').getAll());
+      return all.filter((r) => r.deletedAt === null).reverse().map(recordToSummary);
     },
     async save(score) {
-      if (!score.remote) return insert(client, score);
-      return updateWithVersion(client, score);   // ver 11.3
+      const db = await open();
+      const prev = await tx(db, 'scores', 'readonly', (st) => st.get(score.id));
+      const rec = scoreToRecord(score, now(), prev);
+      await tx(db, 'scores', 'readwrite', (st) => st.put(rec)).catch(toAppError);
+      return rec.updatedAt;
     },
-    // get, listTrash, softDelete, restore, purge ...
+    // get, duplicate, softDelete, restore, purge, purgeExpired ...
   };
 }
 
-function toAppError(e: { code?: string; message: string }): AppError {
-  // 23514 = check_violation → sync_validation; PGRST301/JWT → auth_required; fetch failed → sync_offline
+function toAppError(e: unknown): never {
+  // QuotaExceededError → storage_quota; InvalidStateError / no disponible → storage_unavailable
 }
 ```
 
 Reglas de services:
-- Factoría con dependencias inyectables (cliente Supabase, worker) para testear sin red.
+- Factoría con dependencias inyectables (apertura de la base, reloj, worker) para testear con `fake-indexeddb`.
 - Lanzan **solo** `AppError` con mensaje en español.
 - Máximo 8 métodos públicos, 25 líneas por método.
 
@@ -1561,7 +1361,7 @@ export function useEarAnalysis(audio: DecodedAudio | null) {
 
 Reglas de hooks:
 - Devuelven un estado discriminado (`kind`) en lugar de banderas sueltas (`loading`, `error`, `data`).
-- No llaman a Supabase directamente: usan un service.
+- No acceden a IndexedDB directamente: usan un service.
 - Limpian timers, listeners, workers y `AudioBufferSourceNode` en el cleanup del efecto.
 
 ### 10.5 Plantilla de store (Zustand con historial)
@@ -1636,9 +1436,8 @@ export function createWorkerClient<Req extends { id: string }, Res extends { id:
 |---|---|---|
 | Partitura en edición, selección, cursor, vista, historial | `useScoreStore` (Zustand) | Compartido por editor, vista, export, ear, library |
 | Modo de entrada (piano/diapasón/nombres) | `usePrefsStore` (Zustand + IndexedDB) | Preferencia persistente |
-| Sesión | `useSession` (Supabase `onAuthStateChange`) | Fuente de verdad es Supabase |
-| Lista "Mis partituras" | TanStack Query `['scores']` | Datos remotos con caché |
-| Estado de sincronización | `useSyncStore` | Badge y diálogo de conflicto |
+| Lista "Mis partituras" | TanStack Query `['scores']` sobre el repositorio local | Estados de carga e invalidación simples |
+| Estado de guardado | `useSaveStore` | Indicador "Guardada en este dispositivo" |
 | Audio cargado, región A-B, velocidad | Estado local de `EarPanel` (useReducer) | Solo lo usa ese panel |
 | Overlays abiertos | Estado local de `AppShell` | UI efímera |
 
@@ -1656,38 +1455,29 @@ Selectores finos para evitar renders: `useScoreStore((s) => s.score.notes)` en `
 6. Partituras largas (> 400 notas): se mide el tiempo de render; si supera 50 ms, se activa render diferido
    (`requestIdleCallback` con fallback) y se muestra el estado "dibujando…". Ver objetivos en 15.
 
-### 11.3 Datos remotos y sincronización
+### 11.3 Guardado automático
 
-- **Lectura:** TanStack Query, `staleTime` 30 s, refetch al volver a la pestaña.
-- **Escritura:** guardado explícito ("Guardar") + autoguardado cada 5 s si la partitura ya está en la nube y hay
-  cambios (`dirty`).
-- **Control de versión (ADR-006):**
+- **No hay botón "Guardar"**: toda partitura que el usuario edita se guarda sola en IndexedDB (debounce 800 ms tras
+  cada cambio, y al ocultar la pestaña con `visibilitychange`/`pagehide`).
+- Un ejemplo cargado o una partitura nueva **sin cambios** no se guarda (no ensucia "Mis partituras").
+- Indicador junto al título: "Guardada en este dispositivo" / "Guardando…" / error.
+- **Varias pestañas:** `BroadcastChannel('atril')` anuncia qué partitura tiene abierta cada pestaña. Si dos pestañas
+  abren la misma, la segunda muestra "Esta partitura está abierta en otra pestaña; los cambios de la última que
+  guarde reemplazarán a los otros." (ADR-006). Al guardar, cada pestaña avisa a las demás para refrescar "Mis
+  partituras".
+- **Errores:** cuota llena → "No queda espacio en este dispositivo. Borra partituras o audios guardados, o haz una
+  copia de respaldo." IndexedDB no disponible (modo privado de algunos navegadores) → se trabaja en memoria y aviso
+  único "En esta ventana tus partituras no se guardan; usa una ventana normal o descarga tu trabajo."
+- TanStack Query se mantiene solo para la lista (estados de carga e invalidación); `staleTime: Infinity` e
+  invalidación manual al guardar.
 
-```typescript
-const { data, error } = await client.from('scores')
-  .update(scoreToInsert(score))
-  .eq('id', score.remote.id)
-  .eq('version', score.remote.version)      // solo si nadie la cambió
-  .select('id,version,updated_at')
-  .maybeSingle();
-if (!error && !data) throw new AppError('sync_conflict', 'Esta partitura cambió en otro dispositivo.');
-```
+### 11.4 Arranque y cambio de partitura
 
-- **Conflicto:** `ConflictDialog` ofrece: "Quedarme con la mía" (sobrescribe usando la versión remota actual),
-  "Usar la de la nube" (descarta local, recuperable con deshacer) o "Guardar la mía como copia" (INSERT nuevo).
-- **Sin red:** el borrador local se mantiene en IndexedDB con `pendingSync: true`; al volver `online` se reintenta.
-- **Optimistic updates:** solo para renombrar/borrar en la lista; el contenido de la partitura no se actualiza de
-  forma optimista en la lista.
-
-### 11.4 Borrador local
-
-- `draft.service.ts` guarda la partitura actual en IndexedDB (`atril` DB, store `draft`, clave `current`) con
-  debounce de 800 ms.
-- Al arrancar: si hay borrador, se abre; si no, el ejemplo "Himno de la alegría" (como legacy).
-- Si IndexedDB no está disponible (modo privado de algunos navegadores): se trabaja en memoria y se muestra un aviso
-  único: "En esta ventana tus cambios no se guardan en el dispositivo".
-- Al cargar otra partitura con cambios sin guardar: si hay sesión, se guarda automáticamente en la nube; si no, se
-  pregunta "¿Descartar los cambios?" (legacy guardaba en silencio en localStorage).
+- Al arrancar: si `prefs.lastOpenId` apunta a una partitura existente, se abre; si no, el ejemplo "Himno de la
+  alegría" (como legacy).
+- Al abrir otra partitura, un ejemplo o un resultado de importación/De oído: la actual ya está guardada (11.3), así
+  que se reemplaza sin preguntar. `library.prepareReplace()` solo fuerza el guardado pendiente (flush del debounce).
+- "Nueva" crea una partitura vacía con id nuevo; se guarda al primer cambio.
 
 ### 11.5 Manejo de errores
 
@@ -1714,7 +1504,7 @@ memoria accesible desde "Ayuda → Copiar diagnóstico" (sin servicios externos 
 | `pitch.worker` | Al pulsar "Escribir la melodía sola" (solo/mezcla) |
 | TF.js + modelo Basic Pitch | Al elegir "separar melodía, bajo y acordes" |
 | `stretch.worker` | Al elegir velocidad < 100 % |
-| Supabase client | Al inicio (pequeño); sesión restaurada en segundo plano |
+| Repositorio IndexedDB | Al inicio (abre la base en paralelo con el primer render) |
 
 ### 11.7 Audio (Web Audio)
 
@@ -1809,42 +1599,30 @@ Límites por modo (corrige deuda 6: mismos valores en código y textos):
 Si la región es más larga, se analiza el inicio y se informa: "Analicé los primeros N; selecciona otro pedazo para
 seguir".
 
-### 12.4 Sincronización con la nube
+### 12.4 Guardado
 
 ```
-              guardar (sin sesión) → AuthOverlay → guardar
- ┌───────┐ ─────────────────────────────────────────────────► ┌────────┐
- │ Local │                                                    │ Saving │
- └───────┘                                                    └───┬────┘
-                                         ok                       │
-              ┌───────────────────────────────────────────────────┤
-              ▼                                                   │ conflicto
-         ┌────────┐  editar   ┌───────┐  5 s / guardar  ┌────────┐│
-         │ Saved  │ ────────► │ Dirty │ ──────────────► │ Saving ││
-         └────────┘           └───┬───┘                 └───┬────┘▼
-              ▲                   │ sin red                 │  ┌──────────┐
-              │                   ▼                         │  │ Conflict │
-              │              ┌─────────┐   online           │  └────┬─────┘
-              └───────────── │ Offline │ ───────────────────┘       │ resolver
-                             └─────────┘                            ▼
-                                                              Saving / Saved
+ ┌──────────┐ primer cambio ┌────────┐ debounce 800 ms ┌────────┐  ok   ┌───────┐
+ │ Sin      │ ────────────► │ Sucia  │ ──────────────► │Guardan-│ ────► │Guarda-│
+ │ guardar  │               └────────┘                 │  do    │       │  da   │
+ └──────────┘                   ▲                      └───┬────┘       └───┬───┘
+                                │ cambio                   │ error           │ cambio
+                                └──────────────────────────┼─────────────────┘
+                                                           ▼
+                                                     ┌──────────┐ reintento al siguiente cambio
+                                                     │  Error   │ ─────────────────────────────►
+                                                     └──────────┘
 ```
 
-### 12.5 Sesión
+### 12.5 Respaldo y restauración
 
 ```
- Anónimo ──(enlace mágico / Google)──► Autenticando ──ok──► Autenticado
-    ▲                                       │ error                │
-    │                                       ▼                      │ cerrar sesión
-    └──────────────────────────────── Error (mensaje) ◄────────────┘
-                                                                   ▼
-                                                                Anónimo
+ Mis partituras ─► "Hacer copia" ─► Empaquetando ─► Descargar / Compartir ─► lastBackupAt = ahora
+ Mis partituras ─► "Restaurar copia" ─► Elegir archivo ─► Validando ─► Fusionando ─► Informe
+                                                            │ inválido
+                                                            ▼
+                                                     Error (mensaje)
 ```
-
-Al cerrar sesión: el borrador local se conserva pero se desvincula de la nube (`remote` se elimina) para no mezclar
-cuentas en un dispositivo compartido; se avisa al usuario.
-
----
 
 ## 13. Seguridad
 
@@ -1852,27 +1630,23 @@ cuentas en un dispositivo compartido; se avisa al usuario.
 
 | Activo | Amenaza | Control |
 |---|---|---|
-| Partituras de un usuario | Otro usuario las lee o modifica | RLS por `owner_id` en todas las operaciones (7.7) |
-| Audios subidos | Acceso público al bucket | Bucket privado + políticas por carpeta `{uid}/` + URLs firmadas de 10 min |
-| Sesión | Robo de token por XSS | CSP estricta, sin `dangerouslySetInnerHTML`, React escapa por defecto |
-| Navegador del usuario | Archivo malicioso (zip bomb, XML enorme, MIDI corrupto) | Límites de tamaño, parseo defensivo, Workers |
-| Base de datos | Datos inválidos desde el cliente | CHECK constraints + `valid_notes()` |
-| Cuenta | Spam de enlaces mágicos | Rate limit nativo de Supabase Auth + CAPTCHA (hCaptcha de Supabase) si hay abuso |
+| Partituras y audios del usuario | Pérdida por limpieza del navegador | Almacenamiento persistente, instalación en pantalla de inicio, respaldo (7.6) |
+| Partituras y audios | Lectura por otro sitio | Aislamiento de origen del navegador (IndexedDB es por dominio) |
+| Navegador del usuario | XSS desde contenido importado | CSP estricta, sin `dangerouslySetInnerHTML`, React escapa por defecto |
+| Navegador del usuario | Archivo malicioso (zip bomb, XML enorme, MIDI corrupto, respaldo manipulado) | Límites de tamaño, parseo defensivo, validación de cada partitura del respaldo |
+| Privacidad | Envío de datos a terceros | No hay servidor, analítica ni rastreadores; E2E que intercepta la red |
+
+No hay cuentas, contraseñas ni datos personales en servidores: no aplican robo de sesión, fuga de base de datos ni
+control de acceso.
 
 ### 13.2 Autenticación
 
-- **Métodos:** enlace mágico por email (OTP) y Google OAuth. Sin contraseñas.
-- **Flujo PKCE** (`flowType: 'pkce'` en supabase-js).
-- **Redirect URLs permitidas:** dominio de producción y patrón de previews de Vercel del proyecto. Ninguna otra.
-- **Sesión:** persistida por supabase-js en `localStorage` (requisito de la librería); refresco automático.
-- **Usuario anónimo:** puede editar, escuchar, importar, exportar y usar De oído. Solo "Guardar en la nube", "Mis
-  partituras" y F14 requieren sesión.
+No existe (R3).
 
 ### 13.3 Autorización
 
-- Un solo rol (`authenticated`) en el MVP; no hay RBAC ni administradores en la app.
-- Toda la autorización está en Postgres (RLS). El frontend nunca decide permisos.
-- `owner_id` lo pone la base (`default auth.uid()`) y el trigger impide cambiarlo.
+No existe: todos los datos son del dispositivo y solo los ve quien usa ese navegador. En un dispositivo compartido,
+cualquiera que abra Atril verá sus partituras; se informa en "Acerca de".
 
 ### 13.4 Validación y sanitización de entradas
 
@@ -1894,7 +1668,7 @@ cuentas en un dispositivo compartido; se avisa al usuario.
 default-src 'self';
 script-src 'self' 'wasm-unsafe-eval';
 worker-src 'self' blob:;
-connect-src 'self' https://<proyecto>.supabase.co wss://<proyecto>.supabase.co;
+connect-src 'self';
 img-src 'self' data: blob:;
 media-src 'self' blob:;
 style-src 'self' 'unsafe-inline';
@@ -1918,74 +1692,34 @@ form-action 'self';
 
 ### 13.7 CORS y rate limiting
 
-- No hay API propia; CORS lo gestiona Supabase (orígenes permitidos: producción y previews).
-- Rate limiting: el de Supabase Auth (emails) y PostgREST. En el cliente, el autoguardado no envía más de 1
-  petición cada 5 s por partitura.
+No aplica: la app no hace peticiones a servicios propios ni de terceros. `connect-src 'self'` lo garantiza (solo el
+modelo de Basic Pitch y recursos estáticos del mismo dominio).
 
 ### 13.8 Privacidad
 
-- El audio se procesa localmente; solo se sube si el usuario activa F14 de forma explícita.
+- El audio se procesa y se guarda solo en el dispositivo.
 - Sin analítica ni rastreadores en el MVP.
-- "Borrar mi cuenta": borra `auth.users` (cascada a profiles, scores, audio_sources) y los objetos de Storage.
-  En el MVP se hace desde un enlace de soporte; la UI propia queda para después.
+- "Borrar todo" en "Mis partituras" elimina la base `atril` del dispositivo (con confirmación doble).
 
----
+## 14. APIs
 
-## 14. APIs (Supabase)
+No hay APIs remotas. Los contratos internos son:
 
-No hay endpoints propios. El cliente usa supabase-js contra PostgREST, Auth y Storage. Esta tabla es el contrato.
+| Contrato | Definición |
+|---|---|
+| Repositorio de partituras (IndexedDB) | `ScoreRepository` (8.9) |
+| Respaldo | Formato 7.7; `backup.service.ts`: `exportBackup(opts): Promise<Blob>`, `importBackup(file): Promise<BackupReport>` |
+| Workers | Protocolo 8.7 |
+| Recursos estáticos | `/models/basic-pitch/*` con caché inmutable; `manifest.webmanifest`; iconos |
 
-### 14.1 Auth
+### 14.1 Errores de almacenamiento → AppError
 
-| Operación | Llamada | Auth |
+| Origen | Error del navegador | AppError |
 |---|---|---|
-| Enviar enlace mágico | `auth.signInWithOtp({ email, options: { emailRedirectTo } })` | No |
-| Google | `auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })` | No |
-| Intercambiar código PKCE | automático en `detectSessionInUrl` | — |
-| Sesión actual | `auth.getSession()` / `onAuthStateChange` | — |
-| Cerrar sesión | `auth.signOut()` | Sí |
-
-### 14.2 Perfiles
-
-| Operación | Llamada | Auth |
-|---|---|---|
-| Leer el propio | `from('profiles').select('*').eq('id', uid).single()` | Sí |
-| Actualizar preferencias | `from('profiles').update({ default_instrument, input_mode }).eq('id', uid)` | Sí |
-
-### 14.3 Partituras
-
-| Operación | Llamada | Auth | Notas |
-|---|---|---|---|
-| Listar | `from('scores').select(SUMMARY).is('deleted_at', null).order('updated_at', {ascending:false})` | Sí | Sin `notes` |
-| Papelera | `...not('deleted_at','is',null)` | Sí | |
-| Abrir | `from('scores').select('*').eq('id', id).single()` | Sí | |
-| Crear | `from('scores').insert(row).select('id,version,updated_at').single()` | Sí | |
-| Guardar | `update(row).eq('id', id).eq('version', v).select(...).maybeSingle()` | Sí | `null` → conflicto |
-| Duplicar | Crear con `title + ' (copia)'` | Sí | Cliente |
-| Mover a papelera | `update({ deleted_at: now })` | Sí | |
-| Restaurar | `update({ deleted_at: null })` | Sí | |
-| Borrar definitivo | `delete().eq('id', id)` | Sí | Requiere confirmación doble en UI |
-
-### 14.4 Audio (F14)
-
-| Operación | Llamada | Auth |
-|---|---|---|
-| Subir | `storage.from('audio').upload(`${uid}/${id}.${ext}`, file, { upsert: false })` + insert en `audio_sources` | Sí |
-| URL temporal | `storage.from('audio').createSignedUrl(path, 600)` | Sí |
-| Borrar | `storage.from('audio').remove([path])` + delete fila | Sí |
-
-### 14.5 Códigos de error de Supabase → AppError
-
-| Origen | Código | AppError |
-|---|---|---|
-| Postgres | `23514` (check_violation) | `sync_validation` |
-| Postgres | `42501` (insufficient_privilege) | `auth_required` |
-| PostgREST | `PGRST301`, JWT expirado | `auth_required` (refrescar y reintentar 1 vez) |
-| PostgREST | `PGRST116` (0 filas en `.single()`) | `sync_unknown` (partitura no encontrada) |
-| Red | `TypeError: Failed to fetch` | `sync_offline` |
-| Storage | `413` | `import_file_too_large` |
-
----
+| IndexedDB | `QuotaExceededError` | `storage_quota` |
+| IndexedDB | No disponible / `InvalidStateError` / `SecurityError` | `storage_unavailable` |
+| Respaldo | JSON inválido, `format` o `version` desconocidos | `backup_invalid` |
+| Respaldo | Archivo > 300 MB o JSON > 20 MB | `backup_too_large` |
 
 ## 15. Performance
 
@@ -2010,8 +1744,9 @@ No hay endpoints propios. El cliente usa supabase-js contra PostgREST, Auth y St
 | Basic Pitch, 30 s (WebGL) | ≤ 20 s | Ídem |
 | Carga del modelo Basic Pitch (cache fría) | ≤ 3 s en 4G | ~742 KB + TF.js |
 | Memoria máxima durante Basic Pitch 90 s | ≤ 400 MB | DevTools |
-| Lista "Mis partituras" | ≤ 500 ms p95 | TanStack Query devtools |
-| Guardar partitura | ≤ 700 ms p95 | Ídem |
+| Lista "Mis partituras" (200 partituras) | ≤ 100 ms | `performance.mark` |
+| Guardado automático | ≤ 30 ms | Ídem |
+| Respaldo de 200 partituras | ≤ 1 s | Ídem |
 
 ### 15.3 Técnicas
 
@@ -2033,11 +1768,11 @@ No hay endpoints propios. El cliente usa supabase-js contra PostgREST, Auth y St
 | Capa | Herramienta | Cobertura mínima |
 |---|---|---|
 | Core | Vitest (Node) | 90 % líneas, 85 % ramas |
-| Services / stores | Vitest + mocks de Supabase y Worker | 85 % |
+| Services / stores | Vitest + `fake-indexeddb` + mocks de Worker | 85 % |
 | Hooks | Vitest + `@testing-library/react` (`renderHook`) | 80 % |
 | Componentes | Vitest + Testing Library (jsdom) | 75 % |
 | Global | — | 85 % líneas |
-| Base de datos | Supabase CLI + pgTAP | 100 % de políticas RLS con test |
+| Persistencia | Vitest + `fake-indexeddb` | 100 % de migraciones y del formato de respaldo |
 | E2E | Playwright (Chromium + WebKit móvil) | Flujos críticos 16.6 |
 
 ### 16.2 Tests dorados contra legacy
@@ -2081,9 +1816,9 @@ Cada componente debe tener:
 ### 16.5 Services: casos obligatorios
 
 1. Camino feliz.
-2. Errores de Supabase mapeados a `AppError` (tabla 14.5).
+2. Errores de almacenamiento mapeados a `AppError` (tabla 14.1).
 3. Respuestas vacías.
-4. Conflicto de versión (repository).
+4. Fusión del respaldo (nuevas, actualizadas, sin cambios, inválidas).
 5. Cancelación y error de Worker (ear.service).
 
 ### 16.6 E2E (Playwright)
@@ -2096,19 +1831,19 @@ Cada componente debe tener:
 | Exportar PDF y PNG (archivo descargado no vacío) | Chromium |
 | De oído solo con audio de fixture → ≥ 90 % de notas esperadas | Chromium |
 | De oído partes con audio de fixture → aparecen Melodía y Bajo | Chromium |
-| Login con enlace mágico (Inbucket local de Supabase) → guardar → recargar → abrir | Chromium |
-| Conflicto: dos contextos editan la misma partitura → diálogo | Chromium |
-| Sin red: editar → offline → online → se sincroniza | Chromium |
+| Editar → recargar la página → la partitura sigue ahí y aparece en "Mis partituras" | Chromium, WebKit móvil |
+| Hacer copia en un contexto y restaurarla en otro contexto limpio → mismas partituras | Chromium |
+| Dos pestañas con la misma partitura → aviso | Chromium |
+| Sin red: la app funciona completa tras la primera carga (excepto descargar el modelo por primera vez) | Chromium |
 
-### 16.7 Base de datos (pgTAP)
+### 16.7 Persistencia local
 
-- Usuario A no puede leer, actualizar ni borrar partituras de B.
-- `owner_id` no cambia por UPDATE.
-- `version` incrementa en cada UPDATE.
-- CHECK rechaza: tempo 29/241, key 7, meter '5/4', 3 001 notas, nota con `d: 0`, `p: 128`, `c` de 13 caracteres.
-- Storage: A no puede leer `{B}/archivo`.
-
----
+- Migración 0 → 1 crea stores e índices.
+- `save` / `list` / papelera / `purgeExpired(30)`.
+- Registro corrupto se omite al leer y no rompe la lista.
+- Respaldo: ida y vuelta conserva todo; fusión por `updatedAt`; archivo manipulado (nota con `p: 999`) se rechaza
+  por partitura.
+- Cuota simulada llena → `storage_quota`.
 
 ## 17. Quality Enforcement Rules
 
@@ -2138,11 +1873,10 @@ Orden y bloqueo:
 3. `pnpm depcruise`
 4. `pnpm test --coverage` (umbrales 16.1)
 5. `pnpm build` + verificación de tamaño de bundle (15.2)
-6. `supabase db test` (pgTAP) contra base local
-7. `pnpm e2e` (Playwright) en PRs a `main`
-8. Lighthouse CI sobre el preview de Vercel (advertencia, no bloqueo, en el MVP)
+6. `pnpm e2e` (Playwright) en PRs a `main`
+7. Lighthouse CI sobre el preview de Vercel (advertencia, no bloqueo, en el MVP)
 
-Un PR no se fusiona si falla cualquiera de 1-7.
+Un PR no se fusiona si falla cualquiera de 1-6.
 
 ### 17.3 Definition of Done por tarea
 
@@ -2152,13 +1886,13 @@ Un PR no se fusiona si falla cualquiera de 1-7.
 - [ ] Textos en español revisados en `strings.ts`.
 - [ ] Probado en navegador real: Chrome de escritorio y Safari de iPhone (o simulador).
 - [ ] Accesible: etiquetas, foco visible, uso con teclado.
-- [ ] Si cambia schema: migración nueva + tipos regenerados + test pgTAP.
+- [ ] Si cambia el formato de IndexedDB o del respaldo: migración nueva (7.5) + test.
 - [ ] Log del día en `docs/development/current/`.
 
 ### 17.4 Revisión de código
 
 - Todo PR con descripción, capturas en móvil si toca UI y referencia a la tarea.
-- Revisión obligatoria de: migraciones SQL, políticas RLS, CSP, Workers.
+- Revisión obligatoria de: migraciones de IndexedDB, formato de respaldo, CSP, Workers.
 
 ---
 
@@ -2166,7 +1900,7 @@ Un PR no se fusiona si falla cualquiera de 1-7.
 
 | # | Problema (legacy) | Decisión técnica | Dónde | Test que lo cubre |
 |---|---|---|---|---|
-| 1 | "Mis partituras" en localStorage | Supabase `scores` + borrador en IndexedDB (ADR-005, ADR-007) | library, infra/idb | E2E login→guardar→recargar |
+| 1 | "Mis partituras" en localStorage | IndexedDB persistente + respaldo en archivo (ADR-007, ADR-012, ADR-013) | library, infra/idb | E2E recargar y respaldo |
 | 2 | MusicXML ignora `<forward>`/`<backup>` y anacrusa | Llevar un cursor de tiempo por medida para la voz elegida: `<backup>` retrocede, `<forward>` en la voz elegida agrega silencio; detectar anacrusa (`implicit="yes"` o primer compás más corto que la barra) y **rellenar con silencio inicial** + warning `pickup_padded`. El soporte real de anacrusa (`pickup` en el modelo) queda post-MVP | core/formats/musicxml-import | Fixtures con anacrusa y varias voces |
 | 3 | Acorde MusicXML toma la primera nota | Agrupar `<note>` con `<chord/>` en el mismo inicio y quedarse con la más aguda; warning `polyphony_reduced` | core/formats/musicxml-import | Fixture de acordes |
 | 4 | Separación ≥55 / ≤52 pierde MIDI 53-54 | Melodía = skyline superior sobre **todos** los eventos; bajo = skyline inferior sobre los eventos restantes con `p ≤ 60`; ninguna nota queda sin asignar por umbral | core/analysis/skyline + ear.service | Test sintético con notas 53-54 |
@@ -2175,7 +1909,7 @@ Un PR no se fusiona si falla cualquiera de 1-7.
 | 7 | "Mover todo" recorta en silencio | `shiftAll` devuelve `{clipped}`; si `clipped > 0` el toast dice "N notas quedaron en el límite del rango" con botón "Deshacer" | core/score/score-ops, editor store | Unit + componente |
 | 8 | Deshacer solo cubre notas | Historial de `Snapshot {notes, meta}` + rehacer (10.5) | editor store | Unit |
 | 9 | MIDI: solo primer tempo/compás | Mantener primer tempo/compás pero emitir warnings `tempo_changes` / `meter_changes`; registrar running status correctamente tras eventos meta/sysex | core/formats/midi-import | Fixtures con cambios |
-| 10 | Re-render y guardado por cada nota | rAF para render, debounce 800 ms para borrador, 5 s para nube (11.2, 11.4) | score-view, library | Medición 15.2 |
+| 10 | Re-render y guardado por cada nota | rAF para render, debounce 800 ms para el guardado automático (11.2, 11.3) | score-view, library | Medición 15.2 |
 
 Correcciones menores detectadas al revisar legacy:
 
@@ -2186,7 +1920,7 @@ Correcciones menores detectadas al revisar legacy:
 | Diapasón con trastes para violín/viola/chelo | Mantener (ayuda visual), pero rotular "posiciones" en vez de "trastes" para instrumentos sin trastes |
 | Librerías desde CDN | Empaquetadas (13.5) |
 | Fuentes de Google Fonts | Locales (13.5) |
-| Al cargar otra partitura se guardaba en silencio en la biblioteca | Pregunta o guarda en la nube según sesión (11.4) |
+| Al cargar otra partitura se guardaba en silencio en la biblioteca | Guardado automático explícito con indicador (11.3) |
 
 ---
 
@@ -2199,7 +1933,6 @@ Correcciones menores detectadas al revisar legacy:
 | abcjs | MIT | Rendimiento con partituras largas | Render diferido; límite 3 000 notas |
 | TensorFlow.js | Apache-2.0 | Tamaño (~1 MB gzip) y soporte WebGL en iOS | Carga diferida; fallback CPU con aviso de lentitud |
 | Basic Pitch (modelo y post-proceso) | Apache-2.0 | Código minificado embebido difícil de mantener | Evaluar paquete npm oficial en semana 1; incluir NOTICE |
-| Supabase | Servicio | Plan gratuito: pausa por inactividad, sin backups, 1 GB de Storage | Ping programado y backup semanal con GitHub Actions (2.5); sin planes pagos (R7) |
 | Vercel | Servicio | — | Sitio estático portable a cualquier CDN |
 | JSZip, jsPDF | MIT | — | — |
 
@@ -2211,7 +1944,8 @@ Correcciones menores detectadas al revisar legacy:
 | RK2 | Audio en iOS (desbloqueo, interruptor de silencio, AudioContext suspendido) | Alta | Alto | Portar el código de legacy tal cual; E2E en WebKit + prueba manual en iPhone cada semana |
 | RK3 | TF.js en Worker sin WebGL (OffscreenCanvas no disponible en algunos Safari) | Media | Medio | Probar en semana 1; si falla, ejecutar Basic Pitch en el hilo principal como legacy con UI de progreso |
 | RK4 | Memoria al decodificar audios largos en móviles | Media | Medio | Límite 15 min; mono Float32 inmediato; liberar buffers estéreo |
-| RK5 | Conflictos de sincronización confusos para el usuario | Baja | Medio | Diálogo con 3 opciones claras; "copia" nunca pierde datos |
+| RK5 | El usuario cambia de teléfono y pierde sus partituras | Media | Alto | Recordatorio de respaldo cada 14 días; respaldo compartible por WhatsApp/Drive |
+| RK9 | Safari borra los datos de sitios no visitados en 7 días | Media | Alto | `storage.persist()`, sugerencia de agregar a pantalla de inicio, recordatorio de respaldo (7.6) |
 | RK6 | Alcance del MVP crece (polifonía, letras) | Media | Alto | No-objetivos 1.5; cualquier adición pasa por PRD |
 | RK7 | CSP bloquea TF.js o abcjs | Baja | Medio | Verificar en semana 1 (13.5) |
 | RK8 | Usuarios de legacy pierden sus partituras guardadas en el artifact | Alta | Bajo | Avisar en el artifact: "Descarga para MuseScore y ábrela en la nueva versión" (sus ZIP se importan sin pérdida) |
@@ -2237,7 +1971,7 @@ Correcciones menores detectadas al revisar legacy:
 | YIN | Algoritmo de detección de frecuencia fundamental para una sola voz |
 | WSOLA | Técnica para cambiar la velocidad del audio sin cambiar su tono |
 | Basic Pitch | Modelo de Spotify que transcribe audio polifónico a notas |
-| RLS | Row Level Security de Postgres |
+| IndexedDB | Base de datos del navegador, propia de cada dispositivo y dominio |
 | ABC | Notación musical en texto plano |
 
 ---
@@ -2252,7 +1986,7 @@ Correcciones menores detectadas al revisar legacy:
    - [ ] `notation-core` (teoría, compases, ABC, transposición) — incluye `score-view`
    - [ ] `formats` (importadores y exportadores)
    - [ ] `ear` (audio, Workers, análisis)
-   - [ ] `library` (auth, nube, borrador, conflictos)
+   - [ ] `library` (guardado automático, Mis partituras, papelera, respaldo, durabilidad)
    - [ ] `playback`
 5. [ ] /oden:plan — plan semana por semana (6-8 semanas)
 6. [ ] /oden:architect checklist — verificación pre-código
