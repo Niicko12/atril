@@ -53,7 +53,7 @@ updated: 2026-10-18T12:40:26Z
 | Pieza | Responsabilidad |
 |---|---|
 | `core/formats/musicxml-export.ts` | `Score` → texto MusicXML 3.1 partwise (alturas escritas + `<transpose>`) |
-| `core/formats/midi-export.ts` | `Score` → bytes SMF formato 1 (sonido real) |
+| `core/formats/midi-export.ts` | `Score` → bytes SMF formato 0 (sonido real) |
 | `core/formats/musicxml-import.ts` | Texto MusicXML → `ImportResult` (melodía principal) |
 | `core/formats/midi-import.ts` | Bytes SMF → `ImportResult` |
 | `core/formats/abc-import.ts` | Árbol de abcjs → `ImportResult` |
