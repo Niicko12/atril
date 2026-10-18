@@ -17,8 +17,11 @@ del núcleo musical (transposición, ABC, MusicXML, MIDI, detección de tono). N
 ## Restricciones
 - Todo con planes gratuitos: GitHub Free (repo privado Niicko12/atril) y Vercel Hobby. No proponer servicios pagos.
 - Sin login, cuentas ni backend: las partituras se guardan en IndexedDB del dispositivo; para cambiar de dispositivo, archivo de respaldo.
-- Despliegue: push a `main` → Vercel. Commits con autor `Limber Magana <Niicko12@users.noreply.github.com>` (Vercel bloquea el email local).
+- Despliegue: push a `main` → Vercel, producción en https://atril-xi.vercel.app (OJO: atril.vercel.app es de otra persona). Previews por rama protegidas por Vercel. Commits con autor `Limber Magana <Niicko12@users.noreply.github.com>` (Vercel bloquea el email local).
 - No usar la API de Claude/Anthropic ni otra IA externa. No portar "Pedir melodía a Claude" de legacy.
+
+## Comandos
+`npm run dev` · `npm test` · `npm run lint` · `npm run typecheck` · `npm run depcruise` · `npm run build` (incluye presupuesto de bundle) · `npm run fixtures:legacy` (regenera dorados).
 
 ## Convenciones
 - UI y textos en español.
