@@ -133,7 +133,7 @@ La app es un **sitio 100 % estático**: HTML, JS, CSS, el modelo de Basic Pitch 
 ### 2.3 Hosting
 
 - **Plataforma:** Vercel plan **Hobby (gratis)**, sitio estático (salida de `vite build`), sin funciones de servidor.
-- **Repositorio:** GitHub `Niicko12/atril` (privado), conectado a Vercel por la integración de Git.
+- **Repositorio:** GitHub `Niicko12/atril` (público), conectado a Vercel por la integración de Git.
 - **Justificación:** despliegue por push, preview por rama, CDN global para el modelo y las librerías.
 - **Dominios/entornos:**
   - `main` → producción.
@@ -243,7 +243,7 @@ crea desde la versión 1 de la base para no migrar después; la UI queda oculta 
 
 | Servicio | Uso | Notas |
 |---|---|---|
-| GitHub | Repositorio `Niicko12/atril` (privado) y CI | Gratis |
+| GitHub | Repositorio público `Niicko12/atril` y CI | Gratis |
 | Vercel | Hosting estático, despliegue al hacer push a `main` | Hobby, gratis |
 | Backend / login / IA externa | **Ninguno** (R1, R3) | Basic Pitch corre local |
 

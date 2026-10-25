@@ -15,7 +15,7 @@ del núcleo musical (transposición, ABC, MusicXML, MIDI, detección de tono). N
 `legacy/bp-model.json` contiene el modelo Basic Pitch (Apache-2.0) con pesos en base64.
 
 ## Restricciones
-- Todo con planes gratuitos: GitHub Free (repo privado Niicko12/atril) y Vercel Hobby. No proponer servicios pagos.
+- Todo con planes gratuitos: GitHub Free (repo Niicko12/atril) y Vercel Hobby. No proponer servicios pagos.
 - Sin login, cuentas ni backend: las partituras se guardan en IndexedDB del dispositivo; para cambiar de dispositivo, archivo de respaldo.
 - Despliegue: push a `main` → Vercel, producción en https://atril-xi.vercel.app (OJO: atril.vercel.app es de otra persona). Previews por rama protegidas por Vercel. Commits con autor `Limber Magana <Niicko12@users.noreply.github.com>` (Vercel bloquea el email local).
 - No usar la API de Claude/Anthropic ni otra IA externa. No portar "Pedir melodía a Claude" de legacy.

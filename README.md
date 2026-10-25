@@ -6,7 +6,7 @@ Atril permite escribir, escuchar, corregir y compartir partituras desde el naveg
 adapta a pantallas táctiles, portátiles y monitores amplios, con controles de edición mediante ratón,
 teclado o entrada táctil. El trabajo se guarda en el dispositivo, sin crear una cuenta.
 
-[Aplicación web](https://atril-xi.vercel.app) · [Documentación](docs/README.md) · [Verificación](docs/guides/verificacion-local.md)
+[Aplicación web](https://atril-xi.vercel.app) · [Código fuente](https://github.com/Niicko12/atril) · [Documentación](docs/README.md) · [Verificación](docs/guides/verificacion-local.md)
 
 ## Funciones
 
