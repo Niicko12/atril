@@ -3,7 +3,8 @@ import { prepareSounds, sampledTone, soundStatus } from '@/modules/sound-library
 import { toast } from '@/shared/toast';
 import { getContext, getMaster, isAudioSupported } from './engine/context';
 import { unlock } from './engine/ios-unlock';
-import { START_DELAY_SEC, TICK_MS, buildEvents, eventAt, scheduleWindow, type PlayEvent } from './engine/scheduler';
+import { buildEvents, type PlayEvent } from './engine/scheduler';
+import { startPracticeClock, practiceTimeline, metronomeClick } from '@/modules/practice';
 import { tone } from './engine/tone';
 import { stopVoices } from './engine/voices';
 import { usePlaybackPositionStore } from './store/playback-position.store';
@@ -22,8 +23,7 @@ function audioReady(): boolean {
 }
 const DUR_FACTOR = 0.92;
 
-let timer: ReturnType<typeof setInterval> | null = null;
-let raf = 0;
+let cancelClock: (() => void) | undefined;
 let playing = false;
 let generation = 0;
 const listeners = new Set<(playing: boolean) => void>();
@@ -38,40 +38,35 @@ function setPlaying(v: boolean): void {
 function stopAll(): void {
   generation++;
   if (soundStatus.get().startsWith('Cargando')) soundStatus.set('Carga de sonido detenida');
-  if (timer) clearInterval(timer);
-  timer = null;
-  if (typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(raf);
+  cancelClock?.();
+  cancelClock = undefined;
   stopVoices();
   setPositionDefault(-1);
   setPlaying(false);
 }
 
-function startClock(events: PlayEvent[], startAt: number, opts: PlayOptions, samples = false): void {
-  const c = getContext();
-  const onPosition = opts.onPosition ?? setPositionDefault;
-  const total = events.length ? (events[events.length - 1] as PlayEvent).e : 0;
-  let next = 0;
-  let last = -2;
-  const schedule = () => {
-    next = scheduleWindow({ events, next, startAt, now: c.currentTime }, (ev, when) =>
-      playTone(ev.p as number, when, (ev.e - ev.s) * DUR_FACTOR, { ...opts, samples }),
-    );
-    if (next >= events.length && timer) clearInterval(timer);
-  };
-  const frame = () => {
-    const t = c.currentTime - startAt;
-    if (t > total + 0.2) {
+function startClock(events: PlayEvent[], opts: PlayOptions, samples = false): void {
+  const settings = opts.practice ?? { start: 1, end: 1, bar: 16, beat: 4, speed: 1,
+    repeat: false, metronome: false, countIn: false };
+  const timeline = opts.practice
+    ? practiceTimeline(opts.notes, opts.tempo, settings)
+    : {
+        events,
+        duration: events.at(-1)?.e ?? 0,
+        unit: 0,
+      };
+  cancelClock = startPracticeClock({
+    ...timeline,
+    settings,
+    context: getContext(),
+    play: (ev, when) => playTone(ev.p as number, when, (ev.e - ev.s) * DUR_FACTOR, { ...opts, samples }),
+    click: (when, accent) => metronomeClick({ context: getContext(), output: getMaster(), track }, when, accent),
+    position: opts.onPosition ?? setPositionDefault,
+    end: () => {
       stopAll();
       opts.onEnd?.();
-      return;
-    }
-    const i = eventAt(events, t);
-    if (i !== last) onPosition((last = i));
-    raf = requestAnimationFrame(frame);
-  };
-  schedule();
-  timer = setInterval(schedule, TICK_MS);
-  raf = requestAnimationFrame(frame);
+    },
+  });
 }
 
 function playTone(midi: number, start: number, duration: number, opts: PlayOptions & { samples: boolean }): void {
@@ -85,7 +80,7 @@ function playTone(midi: number, start: number, duration: number, opts: PlayOptio
 }
 function startPrepared(opts: PlayOptions, events: PlayEvent[], token: number): void {
   if (!opts.instrumentId) {
-    startClock(events, getContext().currentTime + START_DELAY_SEC, opts);
+    startClock(events, opts);
     return;
   }
   soundStatus.set('Cargando muestras del instrumento…');
@@ -100,7 +95,7 @@ function startPrepared(opts: PlayOptions, events: PlayEvent[], token: number): v
         ? 'Sonido: muestras de instrumento · FluidR3'
         : 'Sin muestras: sonido sintetizado de respaldo. Comprueba tu conexión.',
     );
-    startClock(events, getContext().currentTime + START_DELAY_SEC, opts, samples);
+    startClock(events, opts, samples);
   });
 }
 
@@ -141,7 +136,10 @@ export const playbackEngine: PlaybackEngine = {
     if (!opts.notes.length || !audioReady()) return;
     unlock();
     const from = Math.min(Math.max(0, opts.fromIndex), opts.notes.length - 1);
-    const events = buildEvents(opts.notes, from, opts.tempo);
+    const events = opts.practice
+      ? practiceTimeline(opts.notes, opts.tempo, opts.practice).events
+      : buildEvents(opts.notes, from, opts.tempo);
+    if (!events.length) return;
     setPlaying(true);
     startPrepared(opts, events, generation);
   },

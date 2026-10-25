@@ -83,4 +83,23 @@ describe('playbackEngine', () => {
     expect(useToastStore.getState().message).toBe('Tu navegador no puede reproducir sonido.');
     expect(() => playbackEngine.play({ notes, fromIndex: 0, tempo: 100, timbre: 'piano' })).not.toThrow();
   });
+  it('el modo práctica recorta el compás, genera pulsos y cancela el bucle completo', () => {
+    playbackEngine.play({ notes: [{ p: 60, d: 48 }], fromIndex: 0, tempo: 120, timbre: 'piano',
+      practice: { start: 2, end: 2, bar: 16, beat: 4, speed: .5, repeat: true, countIn: false, metronome: true } });
+    const click = ctx().sources('osc').find((source) => source.frequency.value === 1200);
+    expect(click).toBeDefined();
+    ctx().currentTime = .2;
+    runFrame();
+    expect(usePlaybackPositionStore.getState().index).toBe(0);
+    ctx().currentTime = 4;
+    vi.advanceTimersByTime(25);
+    expect(playbackEngine.isPlaying).toBe(true);
+    playbackEngine.stopAll();
+    expect(click!.stopCalls).toBeGreaterThan(1);
+    const count = ctx().sources('osc').length;
+    ctx().currentTime = 10;
+    vi.advanceTimersByTime(100);
+    expect(ctx().sources('osc')).toHaveLength(count);
+    expect(usePlaybackPositionStore.getState().index).toBe(-1);
+  });
 });

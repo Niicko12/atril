@@ -1,55 +1,20 @@
 import { useState } from 'react';
-import { canShareFiles, saveBlob, shareBlob } from '@/infra/download';
 import { selectEffectiveView, selectInstrument, useScoreStore } from '@/modules/editor';
-import { Overlay, buttonStyles as b } from '@/shared/components/overlay';
+import { buttonStyles as b } from '@/shared/components/overlay';
 import { fileName } from '../services/file-names';
 import { S } from '../strings';
+import { WhatsAppDialog, type ReadyPdf } from './whatsapp-dialog';
+import styles from './whatsapp.module.css';
 
-type ReadyPdf = { blob: Blob; name: string; title: string };
-function WhatsAppDialog({ pdf, close }: { pdf: ReadyPdf; close(): void }) {
-  const [message, setMessage] = useState('');
-  const [sharing, setSharing] = useState(false);
-  const share = async () => {
-    if (sharing) return;
-    setSharing(true);
-    try {
-      if ((await shareBlob(pdf.name, pdf.blob, pdf.title)) === 'shared') close();
-    } catch {
-      setMessage(S.whatsappFailed);
-    } finally {
-      setSharing(false);
-    }
-  };
-  return (
-    <Overlay title="Compartir por WhatsApp" closeLabel={S.close} onClose={close}>
-      <p>{S.whatsappHelp}</p>
-      {canShareFiles() && (
-        <button type="button" className={`${b.btn} ${b.primary}`} disabled={sharing} onClick={() => void share()}>
-          {S.whatsappChoose}
-        </button>
-      )}
-      <p>{S.whatsappManual}</p>
-      <button type="button" className={b.btn} onClick={() => saveBlob(pdf.name, pdf.blob)}>
-        {S.pdf}
-      </button>
-      <a
-        className={b.btn}
-        href={`https://wa.me/?text=${encodeURIComponent(S.whatsappText(pdf.title))}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {S.whatsappOpen}
-      </a>
-      {message && <p role="alert">{message}</p>}
-    </Overlay>
-  );
-}
 export function WhatsAppButton({ disabled }: { disabled: boolean }) {
   const [pdf, setPdf] = useState<ReadyPdf | null>(null);
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const prepare = async () => {
     if (busy) return;
+    setOpen(true);
+    setPdf(null);
     setBusy(true);
     setError('');
     const state = useScoreStore.getState();
@@ -63,18 +28,21 @@ export function WhatsAppButton({ disabled }: { disabled: boolean }) {
         title: state.score.title || 'Partitura de Atril',
       });
     } catch {
-      setError(S.failed);
+      setError('No se pudo preparar el PDF. Vuelve a intentarlo o comprueba que la partitura tenga notas.');
     } finally {
       setBusy(false);
     }
   };
   return (
     <>
-      <button type="button" className={b.btn} disabled={disabled || busy} onClick={() => void prepare()}>
+      <button type="button" className={`${b.btn} ${styles.whatsapp}`} aria-busy={busy} disabled={disabled || busy} onClick={() => void prepare()}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M20.5 11.6a8.5 8.5 0 0 1-12.6 7.5L3 20.5l1.4-4.7a8.5 8.5 0 1 1 16.1-4.2Z" />
+          <path d="M8.2 7.2c-.7.4-.8 1.3-.5 2.2 1 2.9 3.1 5 6 6 .9.3 1.8.2 2.2-.5l.5-1.2-2.5-1.2-.9 1c-1.5-.6-2.7-1.8-3.3-3.3l1-.9-1.2-2.5Z" />
+        </svg>
         {busy ? S.preparingPdf : 'WhatsApp'}
       </button>
-      {error && <span role="alert">{error}</span>}
-      {pdf && <WhatsAppDialog pdf={pdf} close={() => setPdf(null)} />}
+      {open && <WhatsAppDialog pdf={pdf} error={error} close={() => setOpen(false)} retry={() => void prepare()} />}
     </>
   );
 }

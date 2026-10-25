@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Atril: editor de partituras en espa\u00f1ol para el celular",
+  "description": "Atril: editor de partituras y práctica musical para computadora, tableta y móvil",
   "engines": {
     "node": ">=22.12.0"
   },

@@ -1087,3 +1087,15 @@ Estado actual: solo preparación local de la fotografía y flujo externo para im
 ## 29. Compartir por WhatsApp
 
 Acceso directo «WhatsApp» en Exportar. Prepara un PDF y muestra un diálogo. Compartir el archivo requiere un toque explícito con el PDF listo para respetar la activación del usuario de Web Share; el sistema permite elegir WhatsApp. Cancelar el menú no es error. Si el dispositivo no comparte archivos, se ofrece Descargar PDF y un enlace seguro a WhatsApp con texto del título, explicando que el PDF debe adjuntarse manualmente. Nunca se afirma que wa.me adjunte un archivo ni se envía a un contacto automáticamente.
+
+Mejora de interacción: el diálogo de WhatsApp se abre inmediatamente con progreso mientras se genera el PDF.
+Comprueba la capacidad de compartir el archivo PDF concreto. En escritorio ofrece la acción explícita
+«Descargar PDF y abrir WhatsApp», además de los accesos separados; el usuario adjunta el documento.
+Botones verdes con icono, foco visible, objetivos táctiles y estado ocupado, manteniendo contraste.
+
+### 29.1. Corrección de generación del PDF
+
+La serialización del SVG de abcjs debe conservar un único atributo `xmlns` en el espacio de nombres
+XMLNS. Añadirlo con `setAttribute` puede duplicar la declaración que escribe XMLSerializer, producir
+XML inválido e impedir que Image cargue la partitura. Validar con SVG real de abcjs y DOMParser,
+sin sustituir el generador de partituras por un mock. Esta corrección se aplica a PDF e imágenes.

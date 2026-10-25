@@ -1,6 +1,8 @@
+import type { PracticeOptions } from '@/modules/practice';
 import type { InstrumentId, Midi, Note, Timbre } from '@/core';
 
 export interface PlayOptions {
+  practice?: PracticeOptions;
   instrumentId?: InstrumentId;
   notes: readonly Note[];
   fromIndex: number;

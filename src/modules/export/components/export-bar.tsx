@@ -62,22 +62,22 @@ export function ExportBar() {
 
   return (
     <section className={styles.bar} aria-label="Exportar">
-      <button type="button" className={b.btn} disabled={busy} onClick={() => void pdf(false)}>
+      <button type="button" className={`${b.btn} ${styles.downloadPdf}`} disabled={busy} onClick={() => void pdf(false)}>
         {S.pdf}
       </button>
       {canShareFiles() && (
-        <button type="button" className={b.btn} disabled={busy} onClick={() => void pdf(true)}>
+        <button type="button" className={`${b.btn} ${styles.exportAction}`} disabled={busy} onClick={() => void pdf(true)}>
           {S.share}
         </button>
       )}
       <WhatsAppButton disabled={busy} />
-      <button type="button" className={b.btn} disabled={busy} onClick={() => void zip()}>
+      <button type="button" className={`${b.btn} ${styles.exportAction}`} disabled={busy} onClick={() => void zip()}>
         {S.zip}
       </button>
-      <button type="button" className={b.btn} disabled={busy} onClick={() => void img()}>
+      <button type="button" className={`${b.btn} ${styles.exportAction}`} disabled={busy} onClick={() => void img()}>
         {S.image}
       </button>
-      <button type="button" className={b.btn} onClick={() => void copyAbc()}>
+      <button type="button" className={`${b.btn} ${styles.exportAction}`} onClick={() => void copyAbc()}>
         {S.copyAbc}
       </button>
       <details ref={details} className={styles.details}>

@@ -46,3 +46,18 @@
   font-size: 13px;
   margin: 0;
 }
+.downloadPdf.downloadPdf {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+  min-height: 46px;
+  border-radius: 12px;
+}
+.exportAction.exportAction {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--line);
+  min-height: 44px;
+  border-radius: 10px;
+}
+.downloadPdf:hover:not(:disabled), .exportAction:hover:not(:disabled) { filter: brightness(.96); }

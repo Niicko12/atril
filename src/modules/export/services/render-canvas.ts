@@ -6,17 +6,24 @@ import { scoreRenderOptions, showsTab } from '@/modules/score-view';
 const SCALE = 2.5;
 const PAD = 30;
 
+/** XMLSerializer necesita una declaración XMLNS real, no otro atributo sin namespace. */
+export function serializeScoreSvg(svg: SVGSVGElement, size: { width: number; height: number }): string {
+  const clone = svg.cloneNode(true) as SVGSVGElement;
+  clone.removeAttribute('xmlns');
+  clone.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', String(size.width));
+  clone.setAttribute('height', String(size.height));
+  return new XMLSerializer().serializeToString(clone);
+}
+
 function svgToImage(svg: SVGSVGElement): Promise<{ img: HTMLImageElement; w: number; h: number }> {
   const r = svg.getBoundingClientRect();
-  const clone = svg.cloneNode(true) as SVGSVGElement;
-  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  clone.setAttribute('width', String(r.width));
-  clone.setAttribute('height', String(r.height));
+  const xml = serializeScoreSvg(svg, r);
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve({ img, w: r.width, h: r.height });
     img.onerror = () => reject(new Error('svg'));
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(clone))}`;
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(xml)}`;
   });
 }
 

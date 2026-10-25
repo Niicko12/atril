@@ -11,9 +11,9 @@ export function saveBlob(filename: string, blob: Blob): void {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
-export function canShareFiles(): boolean {
+export function canShareFiles(filename = 'x.txt', blob = new Blob([''], { type: 'text/plain' })): boolean {
   try {
-    const probe = new File([''], 'x.txt', { type: 'text/plain' });
+    const probe = new File([blob], filename, { type: blob.type });
     return typeof navigator.canShare === 'function' && navigator.canShare({ files: [probe] });
   } catch {
     return false;

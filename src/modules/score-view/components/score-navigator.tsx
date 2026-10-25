@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { measureCount, meterOf } from '@/core';
 import { selectInstrument, useScoreStore } from '@/modules/editor';
 import { playbackEngine, usePlayback } from '@/modules/playback';
+import { PracticeControls } from '@/modules/practice';
 import { measureOfNote, playbackAtMeasure } from '../measure-navigation';
 import { S } from '../strings';
 import styles from './score-navigator.module.css';
@@ -96,6 +97,24 @@ export function ScoreNavigator() {
           </button>
         )}
       </div>
+      <PracticeControls
+        key={score.id}
+        count={count}
+        bar={bar}
+        beat={meterOf(score.meter).beat}
+        playing={playing}
+        onStop={() => playbackEngine.stopAll()}
+        onPlay={(practice) =>
+          playbackEngine.play({
+            notes: score.notes,
+            fromIndex: 0,
+            tempo: score.tempo,
+            timbre: instrument.timbre,
+            instrumentId: score.instrumentId,
+            practice,
+          })
+        }
+      />
     </section>
   );
 }

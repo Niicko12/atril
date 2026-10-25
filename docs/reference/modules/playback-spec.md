@@ -672,3 +672,17 @@ Validación: espectro no senoidal de cuerda, armónicos diferenciados por famili
 ## 25. Muestras de instrumentos (solicitud posterior)
 
 Se incorpora FluidR3_GM (CC BY3.0) en archivos MP3 por nota del repositorio mantenido por paulrosen para abcjs. Fuente: https://paulrosen.github.io/midi-js-soundfonts/. Carga al reproducir o previsualizar, usando el instrumento concreto, caché de memoria32MB y notas raíz por octava con ajuste de playbackRate. Se conserva síntesis como respaldo indicado si falla red/decodificación. No se envían partituras ni audio; la primera carga necesita conexión. Detener/cambiar partitura invalida arranques tardíos. Un indicador distingue carga, muestras y respaldo. Créditos y fuente en Ayuda.
+
+## 19. Modo práctica (2026-10-25)
+
+Barra plegable junto a la navegación, sin modificar ni guardar cambios en las notas o el tempo de la obra.
+Permite elegir compases inicial y final inclusivos, repetirlos, velocidad 50/75/100 %, metrónomo y
+un compás de cuenta de entrada. La velocidad modifica tiempos de reproducción, nunca alturas.
+Los eventos que atraviesan los límites se recortan conservando su índice para el resaltado.
+La repetición usa el reloj de AudioContext, sin pausas añadidas; la cuenta ocurre solo al inicio.
+El metrónomo sigue el pulso del compás (incluidos los compuestos) y acentúa su primer pulso.
+Detener, editar o pasar a segundo plano cancela notas, pulsos, cuenta y programación pendiente.
+Los controles de práctica detienen la escucha antes de cambiar parámetros. El seguimiento es
+opcional y desplaza la partitura solamente cuando la nota queda fuera de la zona visible.
+No requiere servicios, cuentas ni migración de las partituras. La escucha habitual sigue disponible.
+Validación: recorte de notas/silencios, velocidad, repetición sin deriva, cuenta, cancelación y controles.

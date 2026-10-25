@@ -36,3 +36,27 @@ it('compartir necesita un segundo toque con el archivo listo y cancelar no es er
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   expect(screen.getByRole('dialog')).toBeInTheDocument();
 });
+it('abre el diálogo con progreso antes de terminar el PDF y permite reintentar un fallo', async () => {
+  let reject!: (reason: Error) => void;
+  vi.mocked(scorePdf).mockReturnValueOnce(new Promise((_resolve, fail) => { reject = fail; }));
+  render(<WhatsAppButton disabled={false} />);
+  fireEvent.click(screen.getByRole('button', { name: 'WhatsApp' }));
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('Preparando');
+  await waitFor(() => expect(scorePdf).toHaveBeenCalled());
+  reject(new Error('PDF failed'));
+  expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo preparar');
+  fireEvent.click(screen.getByRole('button', { name: 'Volver a intentar' }));
+  expect(await screen.findByRole('button', { name: 'Descargar PDF' })).toBeInTheDocument();
+});
+it('la alternativa descarga el PDF y abre WhatsApp con un solo toque explícito', async () => {
+  vi.spyOn(download, 'canShareFiles').mockReturnValue(false);
+  const save = vi.spyOn(download, 'saveBlob').mockImplementation(() => undefined);
+  const open = vi.spyOn(window, 'open').mockReturnValue(null);
+  render(<WhatsAppButton disabled={false} />);
+  fireEvent.click(screen.getByRole('button', { name: 'WhatsApp' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Descargar PDF y abrir WhatsApp' }));
+  expect(save).toHaveBeenCalledOnce();
+  expect(open).toHaveBeenCalledWith(expect.stringContaining('https://wa.me/?text='), '_blank', 'noopener,noreferrer');
+  expect(screen.getByRole('status')).toHaveTextContent('adjunta el archivo');
+});

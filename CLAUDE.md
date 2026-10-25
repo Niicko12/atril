@@ -1,6 +1,6 @@
 # Atril
 
-Editor de partituras (monofónico en el MVP) para músicos hispanohablantes, enfocado en móvil.
+Editor de partituras (monofónico en el MVP) para músicos hispanohablantes, para computadora, tableta y móvil.
 
 ## Metodología
 Oden (documentation-first). No escribir código de la app hasta completar el checklist pre-código de
