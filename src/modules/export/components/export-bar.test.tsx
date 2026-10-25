@@ -14,13 +14,6 @@ beforeEach(() => {
 });
 
 describe('ExportBar', () => {
-  it('ZIP para MuseScore descarga con el nombre correcto', async () => {
-    const save = vi.spyOn(download, 'saveBlob').mockImplementation(() => {});
-    render(<ExportBar />);
-    fireEvent.click(screen.getByRole('button', { name: 'Descargar para MuseScore' }));
-    await waitFor(() => expect(save).toHaveBeenCalledWith('Prueba - Piano.zip', expect.any(Blob)));
-    expect(useToastStore.getState().message).toBe('Listo: Prueba - Piano.zip');
-  });
   it('copiar ABC usa el portapapeles; si falla abre el texto (T-EXP-06)', async () => {
     const writeText = vi.fn().mockRejectedValue(new Error('no'));
     Object.assign(navigator, { clipboard: { writeText } });
@@ -34,6 +27,11 @@ describe('ExportBar', () => {
   it('sin Web Share no aparece Compartir (T-EXP-04)', () => {
     render(<ExportBar />);
     expect(screen.queryByRole('button', { name: 'Compartir' })).toBeNull();
+  });
+  it('presenta una sola acción de descarga PDF en la barra', () => {
+    render(<ExportBar />);
+    expect(screen.getAllByRole('button', { name: 'Descargar PDF' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'WhatsApp' })).toHaveLength(1);
   });
 });
 

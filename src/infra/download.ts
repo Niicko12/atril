@@ -14,7 +14,11 @@ export function saveBlob(filename: string, blob: Blob): void {
 export function canShareFiles(filename = 'x.txt', blob = new Blob([''], { type: 'text/plain' })): boolean {
   try {
     const probe = new File([blob], filename, { type: blob.type });
-    return typeof navigator.canShare === 'function' && navigator.canShare({ files: [probe] });
+    return (
+      typeof navigator.canShare === 'function' &&
+      typeof navigator.share === 'function' &&
+      navigator.canShare({ files: [probe] })
+    );
   } catch {
     return false;
   }

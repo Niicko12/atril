@@ -7,7 +7,7 @@ export const S = {
     'Elige tu instrumento y toca el piano, el diapasón o los botones Do-Re-Mi. Cambia la duración antes de escribir, o selecciona una nota para corregirla.',
     'Usa Editor visual para arrastrar notas, ajustar duraciones y escuchar un borrador antes de aplicar. Cancelar conserva la partitura original; Aplicar permite deshacer el conjunto.',
     'Navega por compases y escucha desde un compás, la nota seleccionada o el inicio. En instrumentos transpositores puedes cambiar entre la partitura escrita y el sonido real.',
-    'Usa Buscar o abrir para buscar partituras clásicas gratuitas en línea y cargarlas directamente, o importar MusicXML, MIDI o ABC. La consulta opcional conecta con GitHub sin enviar tus partituras; revisa las condiciones de la fuente. Los sonidos de instrumentos descargan muestras de FluidR3 al primer uso; necesitan conexión y no envían tus notas. Si fallan, se indica el sonido sintetizado de respaldo. Puedes descargar PDF, imagen o un ZIP para MuseScore.',
+    'Usa Buscar o abrir para buscar partituras clásicas gratuitas en línea y cargarlas directamente, o importar MusicXML, MIDI o ABC. La consulta opcional conecta con GitHub sin enviar tus partituras; revisa las condiciones de la fuente. Los sonidos de instrumentos descargan muestras de FluidR3 al primer uso; necesitan conexión y no envían tus notas. Si fallan, se indica el sonido sintetizado de respaldo. Puedes descargar la partitura como PDF o imagen, y copiar su texto ABC.',
   ],
   ear: 'De una grabación a notas',
   earText:

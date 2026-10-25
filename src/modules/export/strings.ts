@@ -1,23 +1,16 @@
 export const S = {
   pdf: 'Descargar PDF',
-  zip: 'Descargar para MuseScore',
   image: 'Imagen',
   copyAbc: 'Copiar texto ABC',
   abcDetails: 'Texto ABC (para otros programas)',
   share: 'Compartir',
-  whatsappHelp: 'El PDF está listo. Abre el menú de compartir y elige WhatsApp y el contacto.',
   whatsappChoose: 'Compartir PDF · elegir WhatsApp',
-  whatsappManual:
-    'Si tu navegador no comparte archivos, descarga el PDF, abre WhatsApp y adjúntalo en la conversación. El enlace solo lleva el mensaje; no adjunta el archivo.',
-  whatsappOpen: 'Abrir WhatsApp',
   whatsappFailed: 'No se pudo compartir el archivo. Puedes descargarlo y adjuntarlo manualmente.',
   whatsappText: (title: string) => `Te comparto la partitura «${title}», preparada con Atril.`,
   preparingPdf: 'Preparando PDF…',
   done: (name: string) => `Listo: ${name}`,
-  shared: 'Compartido',
   failed: 'No se pudo descargar',
   imageFailed: 'No se pudo crear la imagen.',
-  libFailed: 'No se pudo cargar una herramienta. Revisa tu conexión.',
   abcCopied: 'Texto ABC copiado',
   abcSelect: 'Selecciona y copia el texto',
   imageTitle: 'Imagen',
@@ -27,13 +20,4 @@ export const S = {
   imageCopied: 'Imagen copiada',
   imageAlt: 'Partitura como imagen',
   close: 'Cerrar',
-  readme: (base: string) =>
-    [
-      'Partitura creada con Atril.',
-      '',
-      `- ${base}.musicxml: ábrelo con MuseScore (gratis), Finale, Sibelius o Dorico para seguir editándolo o imprimirlo.`,
-      `- ${base}.mid: el sonido, para cualquier programa de música o DAW.`,
-      `- ${base}.abc: texto ABC; también puedes volver a abrir cualquiera de estos archivos en Atril con «Buscar o abrir».`,
-      '',
-    ].join('\r\n'),
 } as const;

@@ -8,7 +8,7 @@ updated: 2026-10-18T12:45:27Z
 # Spec: Módulo `formats` (+ `import` y `export`)
 
 **Estado:** 🟡 Lista para revisión
-**Features:** F05 (importar MusicXML/.mxl/MIDI/ABC), F06 (exportar PDF, PNG, ABC, ZIP MuseScore), F13 (enlaces)
+**Features:** F05 (importar MusicXML/.mxl/MIDI/ABC), F06 (exportar PDF, PNG y ABC), F13 (enlaces)
 **Historias:** US-F01 … US-F06
 **Deuda que corrige:** 2 (forward/backup y anacrusa), 3 (acordes MusicXML), 9 (cambios de tempo/compás MIDI)
 **Referencia de comportamiento:** `legacy/index.html` líneas 522-725 (exportadores e importadores) y 1276-1350,
@@ -25,7 +25,6 @@ updated: 2026-10-18T12:45:27Z
 4. Exportar MusicXML
 5. Exportar MIDI
 6. Exportar ABC
-7. Exportar ZIP "para MuseScore"
 8. Exportar imagen (PNG)
 9. Exportar PDF
 10. Descargar y compartir
@@ -60,7 +59,7 @@ updated: 2026-10-18T12:45:27Z
 | `core/formats/harmony.ts` | Cifrado en solfeo ⇄ `<harmony>` de MusicXML |
 | `core/formats/text-decode.ts` | Bytes → texto respetando BOM y `encoding` de la declaración XML |
 | `modules/import` | Leer archivo, descomprimir .mxl, pegar ABC, enlaces a sitios, avisos, entregar al editor |
-| `modules/export` | Botones, imagen, PDF, ZIP, copiar ABC, compartir |
+| `modules/export` | Botones, imagen, PDF, copiar ABC y WhatsApp |
 | `infra/download.ts` | Descargar un `Blob` o compartirlo con Web Share |
 
 Pendiente tras ampliación solicitada por el usuario: foto manuscrita/impresa → notas (sección 28). Fuera del importador actual: PDF → notas (OMR), MusicXML `score-timewise`, archivos de MuseScore `.mscz`, Guitar Pro, LilyPond.
@@ -479,8 +478,8 @@ export function canShareFiles(): boolean;     // navigator.canShare?.({ files: [
 export async function shareBlob(filename: string, blob: Blob, title: string): Promise<'shared' | 'cancelled'>;
 ```
 
-- Botón **Compartir** junto a "Descargar PDF" e "Imagen" solo si `canShareFiles()` (Android Chrome, Safari iOS).
-- Permite mandar el PDF o la imagen directo a WhatsApp.
+- La barra muestra una sola acción para descargar el PDF y una acción WhatsApp para compartir la partitura.
+- El diálogo usa `canShareFiles(filename, blob)` sobre el PDF generado; si el navegador lo admite, invoca el menú del sistema. Si no, descarga y abre el borrador de WhatsApp con instrucciones para adjuntar el archivo.
 - Cancelar el menú del sistema (`AbortError`) no muestra error.
 
 ### 10.3 Mensajes
@@ -961,7 +960,6 @@ devDependency).
 | T-IMP-03 | .mxl zip bomb (fixture generado en el test) | Error sin consumir memoria (filtro de fflate) |
 | T-IMP-04 | Import exitoso llama `prepareReplace` y luego `replaceScore` | Orden |
 | T-IMP-05 | Warnings se muestran y se cierran al editar | Sí |
-| T-EXP-01 | ZIP contiene 4 archivos con nombres correctos y LEEME con CRLF | Sí |
 | T-EXP-02 | PNG no vacío, ancho ≈ (svg + 60) × 2.5 | Sí |
 | T-EXP-03 | PDF de 300 compases → > 1 página (jsPDF real en jsdom con canvas mock) | Sí |
 | T-EXP-04 | Botón Compartir oculto sin `navigator.canShare` | Sí |
@@ -977,7 +975,6 @@ devDependency).
 | E2E-FM-02 | Abrir un .mxl exportado por MuseScore 4 → abre |
 | E2E-FM-03 | Abrir MIDI multipista → melodía, tempo correcto |
 | E2E-FM-04 | Pegar ABC de abcnotation con repeticiones → abre + aviso |
-| E2E-FM-05 | Exportar ZIP, descomprimir en el test, abrir el MusicXML con el propio importador → mismas notas |
 | E2E-FM-06 | Exportar PDF → archivo descargado > 10 KB, empieza con `%PDF` |
 | E2E-FM-07 | Exportar imagen → overlay con imagen visible |
 
@@ -1012,7 +1009,6 @@ tenor, guitarra (con tablatura), corno y flauta dulce. Criterios: sin avisos de 
 | US-F01 | Aviso de cambios de tempo/compás | 13.2, 17 | T-MID-07 (X18) |
 | US-F02 | Pegar ABC | 14, 16.3 | T-ABC-I-*, E2E-FM-04 |
 | US-F03 | PDF con nombre del instrumento | 7.2, 9 | T-FN-01, T-EXP-03, E2E-FM-06 |
-| US-F04 | ZIP para MuseScore, abre sin advertencias | 4, 7 | T-MXE-02, T-EXP-01, 22.5 |
 | US-F05 | Imagen para WhatsApp | 8, 10.2 | T-EXP-02/04/05, E2E-FM-07 |
 | US-F06 | Enlaces a sitios | 16.2 | T-LNK-01 |
 
@@ -1088,10 +1084,11 @@ Estado actual: solo preparación local de la fotografía y flujo externo para im
 
 Acceso directo «WhatsApp» en Exportar. Prepara un PDF y muestra un diálogo. Compartir el archivo requiere un toque explícito con el PDF listo para respetar la activación del usuario de Web Share; el sistema permite elegir WhatsApp. Cancelar el menú no es error. Si el dispositivo no comparte archivos, se ofrece Descargar PDF y un enlace seguro a WhatsApp con texto del título, explicando que el PDF debe adjuntarse manualmente. Nunca se afirma que wa.me adjunte un archivo ni se envía a un contacto automáticamente.
 
-Mejora de interacción: el diálogo de WhatsApp se abre inmediatamente con progreso mientras se genera el PDF.
-Comprueba la capacidad de compartir el archivo PDF concreto. En escritorio ofrece la acción explícita
-«Descargar PDF y abrir WhatsApp», además de los accesos separados; el usuario adjunta el documento.
-Botones verdes con icono, foco visible, objetivos táctiles y estado ocupado, manteniendo contraste.
+Mejora de interacción: la barra presenta una sola acción de descarga de PDF y otra de WhatsApp.
+El diálogo de WhatsApp se abre inmediatamente con progreso mientras se genera el PDF. Comprueba
+la capacidad de compartir el archivo PDF concreto. En escritorio ofrece una sola acción explícita
+«Descargar PDF y abrir WhatsApp»; el usuario adjunta el documento. Botón verde con icono, foco visible,
+objetivo táctil y estado ocupado, manteniendo contraste.
 
 ### 29.1. Corrección de generación del PDF
 

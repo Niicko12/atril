@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { buildAbc } from '@/core';
-import { canShareFiles, saveBlob, shareBlob } from '@/infra/download';
+import { saveBlob } from '@/infra/download';
 import { selectEffectiveView, selectInstrument, useScoreStore } from '@/modules/editor';
 import { buttonStyles as b } from '@/shared/components/overlay';
 import { toast } from '@/shared/toast';
@@ -10,7 +10,7 @@ import { WhatsAppButton } from './whatsapp-button';
 import { ImageOverlay } from './image-overlay';
 import styles from './export.module.css';
 
-/** PDF, ZIP MuseScore, imagen, ABC y compartir (formats-spec 6-10). */
+/** PDF, imagen, texto ABC y WhatsApp. */
 export function ExportBar() {
   const score = useScoreStore((s) => s.score);
   const instrument = useScoreStore(selectInstrument);
@@ -34,20 +34,13 @@ export function ExportBar() {
       setBusy(false);
     }
   };
-  const pdf = (share: boolean) =>
+  const pdf = () =>
     run(async () => {
       toast(S.preparingPdf);
       const { scorePdf } = await import('../services/pdf.service');
-      const blob = await scorePdf(score, instrument, view).catch(() => Promise.reject(new Error(S.libFailed)));
-      if (share && (await shareBlob(name('pdf'), blob, score.title)) === 'shared') toast(S.shared);
-      else if (!share) saveBlob(name('pdf'), blob);
-      if (!share) toast(S.done(name('pdf')));
-    });
-  const zip = () =>
-    run(async () => {
-      const { museScoreZip } = await import('../services/zip.service');
-      saveBlob(name('zip'), museScoreZip(score, instrument));
-      toast(S.done(name('zip')));
+      const blob = await scorePdf(score, instrument, view);
+      saveBlob(name('pdf'), blob);
+      toast(S.done(name('pdf')));
     });
   const img = () =>
     run(async () => {
@@ -62,18 +55,10 @@ export function ExportBar() {
 
   return (
     <section className={styles.bar} aria-label="Exportar">
-      <button type="button" className={`${b.btn} ${styles.downloadPdf}`} disabled={busy} onClick={() => void pdf(false)}>
+      <button type="button" className={`${b.btn} ${styles.downloadPdf}`} disabled={busy} onClick={() => void pdf()}>
         {S.pdf}
       </button>
-      {canShareFiles() && (
-        <button type="button" className={`${b.btn} ${styles.exportAction}`} disabled={busy} onClick={() => void pdf(true)}>
-          {S.share}
-        </button>
-      )}
       <WhatsAppButton disabled={busy} />
-      <button type="button" className={`${b.btn} ${styles.exportAction}`} disabled={busy} onClick={() => void zip()}>
-        {S.zip}
-      </button>
       <button type="button" className={`${b.btn} ${styles.exportAction}`} disabled={busy} onClick={() => void img()}>
         {S.image}
       </button>

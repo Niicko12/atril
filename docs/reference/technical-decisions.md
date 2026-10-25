@@ -49,7 +49,7 @@ Atril es un editor de partituras para músicos aficionados y estudiantes de habl
 - **Escuchar** la melodía con un sintetizador que imita la familia del instrumento elegido.
 - **Transportar** automáticamente para instrumentos transpositores (Si♭, Mi♭, Fa, octava) y avisar de notas fuera
   de rango.
-- **Abrir** partituras existentes (MusicXML, .mxl, MIDI, ABC) y **exportarlas** (PDF, PNG, ABC, ZIP para MuseScore).
+- **Abrir** partituras existentes (MusicXML, .mxl, MIDI, ABC) y **exportarlas** (PDF, PNG, texto ABC).
 - **Sacar canciones de oído** a partir de un audio: detección de tono de una voz sola, melodía principal de una mezcla,
   o separación melodía/bajo/acordes con el modelo Basic Pitch ejecutado en el navegador.
 - **Guardar** sus partituras automáticamente en su propio dispositivo, sin cuenta ni login, y moverlas a otro
@@ -192,7 +192,7 @@ Costo total: **US$0/mes**, sin cuentas de terceros además de GitHub y Vercel.
 | F03 | Vista "para el instrumento" / "sonido real", nombres de notas | Must | Sí | — |
 | F04 | Reproducción sintetizada por familia, resaltado de nota en curso | Must | Sí | Motor en módulo propio |
 | F05 | Importar MusicXML/.mxl/MIDI/ABC | Must | Sí | Corrige deuda 2, 3, 9 |
-| F06 | Exportar PDF, PNG, ABC, ZIP MuseScore | Must | Sí | Descarga nativa del navegador |
+| F06 | Exportar PDF, PNG y ABC | Must | Sí | Descarga nativa del navegador |
 | F07 | De oído: YIN (voz sola), melodía en mezcla, Basic Pitch (partes) | Must | Sí | En Web Worker; corrige deuda 4, 5, 6 |
 | F08 | Reproductor de audio: onda, A-B, velocidad sin cambio de tono | Must | Sí | WSOLA en Worker |
 | F09 | "Mis partituras" con guardado automático en el dispositivo + respaldo en archivo | Must | Parcial (era localStorage) | Corrige deuda 1 sin login (R3) |
@@ -428,7 +428,7 @@ atril/
 │   │   ├── score-view/           # ScoreSheet, status
 │   │   ├── playback/             # motor Web Audio
 │   │   ├── import/               # abrir archivos, pegar ABC, enlaces
-│   │   ├── export/               # PDF, PNG, ZIP, ABC
+│   │   ├── export/               # PDF, PNG, ABC
 │   │   ├── ear/                  # De oído
 │   │   └── library/              # Mis partituras, autoguardado, respaldo
 │   └── shared/

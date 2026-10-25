@@ -24,8 +24,7 @@ teclado o entrada táctil. El trabajo se guarda en el dispositivo, sin crear una
   artista/compositor. La consulta remota ofrece el catálogo disponible en su fuente; no es un
   buscador universal de canciones.
 - **Importación:** archivos MusicXML/MXL, MIDI y texto ABC.
-- **Exportación:** PDF, imagen y paquete con MusicXML, MIDI y ABC para continuar el trabajo en otros
-  programas, como MuseScore.
+- **Exportación:** PDF e imagen, además de copiar la melodía en texto ABC.
 - **Compartir por WhatsApp:** preparación de PDF y menú de compartir del sistema cuando admite
   archivos. En otros navegadores, descarga del PDF y apertura de WhatsApp para adjuntarlo manualmente.
 - **De oído:** herramientas de audio y transcripción local con Basic Pitch, con revisión del resultado.

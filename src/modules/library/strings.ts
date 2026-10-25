@@ -50,7 +50,7 @@ export const S = {
   saved: 'Guardada en este dispositivo',
   unsaved: 'Sin guardar (aún no la editaste)',
   storageUnavailable:
-    'En esta ventana tus partituras no se guardan. Usa una ventana normal del navegador, o descarga tu trabajo (PDF o «Descargar para MuseScore»).',
+    'En esta ventana tus partituras no se guardan. Usa una ventana normal del navegador o descarga tu trabajo como PDF.',
   storageQuota:
     'No queda espacio en este dispositivo. Borra partituras o audios guardados, o haz una copia de respaldo.',
   backupInvalid: 'Ese archivo no es una copia de Atril.',
