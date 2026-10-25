@@ -4,6 +4,7 @@ import { emptyScore } from '@/core';
 import { useScoreStore } from '@/modules/editor';
 import * as download from '@/infra/download';
 import { scorePdf } from '../services/pdf.service';
+import { pdfFailure } from '../services/pdf-errors';
 import { WhatsAppButton } from './whatsapp-button';
 vi.mock('../services/pdf.service', () => ({ scorePdf: vi.fn() }));
 beforeEach(() => {
@@ -21,6 +22,10 @@ it('prepara el PDF y ofrece descargar y abrir WhatsApp sin adjuntar automáticam
   expect(screen.queryByRole('button', { name: 'Descargar PDF' })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Descargar PDF y abrir WhatsApp' }));
   expect(save).toHaveBeenCalledWith(expect.stringContaining('Piano.pdf'), expect.any(Blob));
+});
+it('explica cómo recuperarse de un módulo PDF que Vite no pudo cargar', () => {
+  expect(pdfFailure(new TypeError('Failed to fetch dynamically imported module: jspdf.js'))).toContain('Recarga Atril');
+  expect(pdfFailure(new Error('svg'))).toContain('Revisa la partitura');
 });
 it('compartir necesita un segundo toque con el archivo listo y cancelar no es error', async () => {
   vi.spyOn(download, 'canShareFiles').mockReturnValue(true);

@@ -1,3 +1,4 @@
+import { jsPDF } from 'jspdf';
 import type { Instrument, Score, View } from '@/core';
 import { renderCanvas } from './render-canvas';
 
@@ -18,9 +19,9 @@ export function sliceEnd(y: number, sliceH: number, height: number, blankAt: (ro
   return k > y + sliceH * 0.5 ? k : end;
 }
 
-/** PDF tamaño carta a partir del dibujo (carga jsPDF solo al usarse). */
+/** PDF tamaño carta a partir del dibujo. Este módulo se carga bajo demanda. */
 export async function scorePdf(score: Score, instrument: Instrument, view: View): Promise<Blob> {
-  const [{ jsPDF }, c] = await Promise.all([import('jspdf'), renderCanvas(score, instrument, view)]);
+  const c = await renderCanvas(score, instrument, view);
   const pdf = new jsPDF({ unit: 'pt', format: 'letter' });
   pdf.setProperties({ title: score.title || 'Sin título', author: score.composer, creator: 'Atril' });
   const pw = pdf.internal.pageSize.getWidth();

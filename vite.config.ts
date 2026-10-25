@@ -5,6 +5,7 @@ import { fileURLToPath, URL } from 'node:url';
 export default defineConfig({
   plugins: [react()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  optimizeDeps: { include: ['jspdf'] },
   build: {
     target: 'es2022',
     sourcemap: true,
@@ -26,7 +27,14 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.test.*', 'src/main.tsx', 'src/test-setup.ts', 'src/vendor/**', 'src/spikes/**', 'src/**/*.test-helper.ts'],
+      exclude: [
+        'src/**/*.test.*',
+        'src/main.tsx',
+        'src/test-setup.ts',
+        'src/vendor/**',
+        'src/spikes/**',
+        'src/**/*.test-helper.ts',
+      ],
       // Umbrales por capa (technical-decisions 16.1, specs de módulo).
       thresholds: { lines: 85, 'src/core/**': { lines: 95, branches: 90, functions: 95 } },
     },

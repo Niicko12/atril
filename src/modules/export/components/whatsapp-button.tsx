@@ -3,6 +3,7 @@ import { selectEffectiveView, selectInstrument, useScoreStore } from '@/modules/
 import { buttonStyles as b } from '@/shared/components/overlay';
 import { fileName } from '../services/file-names';
 import { S } from '../strings';
+import { pdfFailure } from '../services/pdf-errors';
 import { WhatsAppDialog, type ReadyPdf } from './whatsapp-dialog';
 import styles from './whatsapp.module.css';
 
@@ -28,8 +29,7 @@ export function WhatsAppButton({ disabled }: { disabled: boolean }) {
         title: state.score.title || 'Partitura de Atril',
       });
     } catch (cause) {
-      const detail = cause instanceof Error && cause.message ? ` (${cause.message})` : '';
-      setError(`No se pudo generar el PDF${detail}. Vuelve a intentarlo.`);
+      setError(pdfFailure(cause));
     } finally {
       setBusy(false);
     }
