@@ -4,6 +4,7 @@
 - [Análisis competitivo](reference/competitive-analysis.md)
 - [Plan de implementación](reference/implementation-plan.md)
 - [Guía de De oído](guides/de-oido.md)
+- [Verificación local y de navegador](guides/verificacion-local.md)
 - [Avance de la etapa 6](development/current/2026-10-24.md)
 - [Specs de módulos](reference/modules/)
 - `development/current/` — trabajo en curso y logs diarios

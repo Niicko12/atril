@@ -209,7 +209,7 @@ Total ≈ 20-24 h.
 
 ## 9. Semana 7 — Calidad (M4)
 
-**Avance 2026-10-24:** mejoras de foco/teclado, contraste, recuperación de cargas y Ayuda/Acerca de implementadas, con 367 pruebas aprobadas. La auditoría axe/lectores de pantalla, Lighthouse y verificaciones manuales siguen pendientes; M4 no está cerrado. Ver el registro de avance.
+**Avance 2026-10-24:** mejoras de foco/teclado, contraste, recuperación de cargas, Ayuda/Acerca de y recorridos E2E para Chromium/WebKit preparados; 371 pruebas unitarias/de integración aprobadas. Los E2E de navegador, auditoría axe/lectores de pantalla, Lighthouse y verificaciones manuales siguen pendientes; M4 no está cerrado. Ver el registro de avance.
 
 ### 9.1 Tareas
 

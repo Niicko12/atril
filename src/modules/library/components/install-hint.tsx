@@ -12,10 +12,16 @@ export function InstallHint() {
   const saved = useSaveStore((s) => s.state.kind === 'saved');
   useEffect(() => {
     if (!saved) return;
-    void Promise.all([prefs.get('installHintShownAt'), prefs.get('installHintDismissed')]).then(
-      ([shownAt, dismissed]) =>
-        setShow(shouldShowInstallHint({ platform: detectPlatform(), hasScores: true, shownAt, dismissed })),
-    );
+    let active = true;
+    void Promise.all([prefs.get('installHintShownAt'), prefs.get('installHintDismissed')])
+      .then(
+        ([shownAt, dismissed]) =>
+          active && setShow(shouldShowInstallHint({ platform: detectPlatform(), hasScores: true, shownAt, dismissed })),
+      )
+      .catch(() => active && setShow(false));
+    return () => {
+      active = false;
+    };
   }, [saved]);
   if (!show) return null;
   const close = (dismissed: boolean) => {

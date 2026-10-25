@@ -18,6 +18,7 @@ export const S = {
   samples: 'Ejemplos',
   backup: 'Copia de respaldo',
   makeBackup: 'Hacer copia',
+  makingBackup: 'Preparando copia…',
   restoreBackup: 'Restaurar copia',
   includeTrash: 'Incluir la papelera',
   lastBackup: (date: string, n: number) => `Última copia: ${date} · ${n} partituras`,
@@ -27,6 +28,7 @@ export const S = {
   reminder:
     'Hace más de 2 semanas que no haces una copia. Si cambias de teléfono o el navegador borra sus datos, podrías perder tus partituras.',
   backupReady: (n: number) => `Copia lista: ${n} partituras.`,
+  backupFailed: 'No se pudo crear la copia. Comprueba el espacio disponible e inténtalo de nuevo.',
   restored: (r: { added: number; updated: number; unchanged: number; invalid: number }) =>
     `Restaurada: ${r.added} nuevas, ${r.updated} actualizadas, ${r.unchanged} sin cambios, ${r.invalid} con errores.`,
   share: 'Compartir',
@@ -35,6 +37,7 @@ export const S = {
   usageHigh: 'El espacio de este dispositivo para Atril está casi lleno.',
   deleteAll: 'Borrar todo',
   deleteAllConfirm: '¿Borrar todas tus partituras y audios de este dispositivo? No se puede deshacer.',
+  deleteAllFailed: 'No se pudieron borrar los datos de Atril. Cierra otras pestañas e inténtalo de nuevo.',
   backupFirst: 'Hacer copia primero',
   copied: 'Se creó una copia',
   movedToTrash: 'Se movió a la papelera',
@@ -59,7 +62,7 @@ export const S = {
   dbBlocked: 'Cierra las otras pestañas de Atril para actualizar.',
   dbChanged: 'Atril se actualizó en otra pestaña. Recarga esta página.',
   installHint:
-    'Agrega Atril a tu pantalla de inicio para que tus partituras no se borren: toca Compartir ⬆︎ y luego «Agregar a inicio».',
+    'En iPhone, agregar Atril a la pantalla de inicio puede ayudar a conservar tus partituras. Toca Compartir ⬆︎ y luego «Agregar a inicio». Guarda también una copia de respaldo.',
   gotIt: 'Entendido',
   later: 'Más tarde',
   library: 'Mis partituras',

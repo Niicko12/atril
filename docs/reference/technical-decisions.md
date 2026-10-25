@@ -570,8 +570,8 @@ Mitigaciones:
 
 1. `navigator.storage.persist()` al guardar la primera partitura (una sola vez).
 2. Manifiesto web mínimo (`manifest.webmanifest`, iconos) para poder **agregar Atril a la pantalla de inicio**; en
-   iPhone se muestra una vez la sugerencia "Agrega Atril a tu pantalla de inicio para que tus partituras no se
-   borren".
+   iPhone se muestra una sugerencia para ayudar a conservar los datos, acompañada del recordatorio de mantener una
+   copia de respaldo. La instalación no garantiza que el usuario no pierda sus datos.
 3. Recordatorio de respaldo: si hay ≥ 1 partitura y `lastBackupAt` tiene más de 14 días, aviso discreto en "Mis
    partituras" con botón "Hacer copia".
 4. Las exportaciones (PDF, ZIP MuseScore) siguen disponibles como respaldo individual.

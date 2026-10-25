@@ -17,6 +17,7 @@ const ERRORS: Record<BackupError['kind'], string> = {
   too_large: S.backupTooLarge,
 };
 const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1).replace('.', ',')} MB`;
+const backupButtonLabel = (making: boolean) => (making ? S.makingBackup : S.makeBackup);
 
 interface Props {
   latestUpdate: string | null;
@@ -28,28 +29,46 @@ export function BackupPanel({ latestUpdate }: Props) {
   const [last, setLast] = useState<{ at: string | null; count: number }>({ at: null, count: 0 });
   const [usage, setUsage] = useState<{ usage: number; quota: number } | null>(null);
   const [ready, setReady] = useState<{ blob: Blob; name: string } | null>(null);
+  const [making, setMaking] = useState(false);
   const bump = useLibraryVersion((s) => s.bump);
-  const wipe = useArmed(() => void deleteDatabase().then(() => location.reload()));
+  const wipe = useArmed(
+    () =>
+      void deleteDatabase()
+        .then(() => location.reload())
+        .catch(() => setMsg({ text: S.deleteAllFailed, ok: false })),
+  );
 
   useEffect(() => {
-    void Promise.all([prefs.get('lastBackupAt'), prefs.get('lastBackupCount'), storageUsage()]).then(
-      ([at, count, u]) => {
+    let active = true;
+    void Promise.all([prefs.get('lastBackupAt'), prefs.get('lastBackupCount'), storageUsage()])
+      .then(([at, count, u]) => {
+        if (!active) return;
         setLast({ at, count });
         setUsage(u);
-      },
-    );
+      })
+      .catch(() => active && setUsage(null));
+    return () => {
+      active = false;
+    };
   }, []);
 
   const make = async () => {
-    const { blob, count } = await exportBackup(false);
-    const name = backupFileName();
-    const at = new Date().toISOString();
-    await prefs.set('lastBackupAt', at);
-    await prefs.set('lastBackupCount', count);
-    setLast({ at, count });
-    setMsg({ text: S.backupReady(count), ok: true });
-    if (canShareFiles()) setReady({ blob, name });
-    else saveBlob(name, blob);
+    setMaking(true);
+    try {
+      const { blob, count } = await exportBackup(false);
+      const name = backupFileName();
+      const at = new Date().toISOString();
+      await prefs.set('lastBackupAt', at);
+      await prefs.set('lastBackupCount', count);
+      setLast({ at, count });
+      setMsg({ text: S.backupReady(count), ok: true });
+      if (canShareFiles()) setReady({ blob, name });
+      else saveBlob(name, blob);
+    } catch {
+      setMsg({ text: S.backupFailed, ok: false });
+    } finally {
+      setMaking(false);
+    }
   };
   const restore = async (file: File | undefined) => {
     if (!file) return;
@@ -68,8 +87,8 @@ export function BackupPanel({ latestUpdate }: Props) {
         <p className={styles.reminder}>{last.at ? S.reminder : S.reminderNever}</p>
       )}
       <div className={styles.inline}>
-        <button type="button" className={`${b.btn} ${b.primary}`} onClick={() => void make()}>
-          {S.makeBackup}
+        <button type="button" className={`${b.btn} ${b.primary}`} disabled={making} onClick={() => void make()}>
+          {backupButtonLabel(making)}
         </button>
         <label className={`${b.btn} ${styles.file}`}>
           {S.restoreBackup}

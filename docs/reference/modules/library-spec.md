@@ -517,8 +517,9 @@ Chrome concede según el uso; Firefox puede preguntar al usuario; Safari lo conc
 | Tiene partituras | ≥ 1 guardada |
 | No se mostró antes | `prefs.installHintShownAt == null` o hace > 30 días y se tocó "Más tarde" |
 
-Contenido: "Agrega Atril a tu pantalla de inicio para que tus partituras no se borren: toca Compartir ⬆︎ y luego
-«Agregar a inicio»." Botones "Entendido" (no volver a mostrar) y "Más tarde" (30 días).
+Contenido: "En iPhone, agregar Atril a la pantalla de inicio puede ayudar a conservar tus partituras. Toca
+Compartir ⬆︎ y luego «Agregar a inicio». Guarda también una copia de respaldo." Botones "Entendido" (no volver a
+mostrar) y "Más tarde" (30 días). No prometer que instalar la app impide la pérdida de datos.
 
 En Android/Chrome se usa el evento `beforeinstallprompt` si está disponible: botón "Instalar Atril" en el overlay.
 
