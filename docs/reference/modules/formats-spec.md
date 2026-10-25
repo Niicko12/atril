@@ -63,7 +63,7 @@ updated: 2026-10-18T12:45:27Z
 | `modules/export` | Botones, imagen, PDF, ZIP, copiar ABC, compartir |
 | `infra/download.ts` | Descargar un `Blob` o compartirlo con Web Share |
 
-Fuera de alcance: PDF → notas (OMR), MusicXML `score-timewise`, archivos de MuseScore `.mscz`, Guitar Pro, LilyPond.
+Pendiente tras ampliación solicitada por el usuario: foto manuscrita/impresa → notas (sección 28). Fuera del importador actual: PDF → notas (OMR), MusicXML `score-timewise`, archivos de MuseScore `.mscz`, Guitar Pro, LilyPond.
 
 ---
 
@@ -760,36 +760,33 @@ si hay warnings → panel de avisos (17)
 
 ## 16. UI de "Buscar o abrir"
 
-Overlay con tres bloques (el bloque "Pedir la melodía a Claude" de legacy **se elimina**, R1):
+Overlay con catálogo local, digitalización fotográfica, abrir archivo y ABC (el bloque "Pedir la melodía a Claude" de legacy **se elimina**, R1):
 
-### 16.1 Abrir un archivo
+### 16.1 Buscar en el catálogo de Atril
+
+- Busca por título, compositor, alias o estilo sin abandonar Atril.
+- El catálogo inicial incluye canciones de dominio público/transcripciones tradicionales verificadas en `SAMPLES`.
+- «Editar canción» protege/guarda la partitura actual, crea una copia editable con el instrumento activo y abre el editor directamente.
+- El catálogo inicial es local y acotado; no consulta MuseScore ni ofrece todas las canciones existentes.
+
+### 16.2 Digitalizar desde una foto
+
+- Captura/selección local de una imagen (`image/*`, hasta 25 MB), vista previa, giro de 90°, brillo y contraste.
+- Descarga una copia PNG en escala de grises con los ajustes aplicados; el original no se modifica ni se envía.
+- Atril no ejecuta OMR integrado todavía. La UI guía al usuario por Audiveris (partitura impresa → revisión → exportar `.mxl`) y permite importar el resultado mediante 16.2.
+- Se advierte que el reconocimiento puede equivocarse y que Audiveris no reconoce escritura manuscrita.
+
+### 16.3 Abrir un archivo
 
 - Texto: "MusicXML o .mxl (de MuseScore, Finale, Sibelius), MIDI (.mid) o ABC. Se toma la melodía principal."
 - Botón "Elegir archivo" (`<label>` con `<input type=file>` oculto).
 - Mensaje de estado: "Abriendo {nombre}…" → error en rojo o cierre del overlay al abrir.
 
-### 16.2 Dónde encontrar partituras (F13)
-
-Campo "Nombre de la canción" que actualiza los enlaces en vivo (`encodeURIComponent`).
-
-| Grupo | Sitio | URL |
-|---|---|---|
-| Gratis, de dominio público | IMSLP (clásica) | `https://imslp.org/index.php?title=Special:Search&search={q}` |
-| | Mutopia | `https://www.mutopiaproject.org/cgibin/make-table.cgi?searchingfor={q}` |
-| | abcnotation | `https://abcnotation.com/searchTunes?q={q}` |
-| Canciones modernas, con permiso de los autores | MuseScore | `https://musescore.com/sheetmusic?text={q}` |
-| | Ultimate Guitar (acordes y tabs) | `https://www.ultimate-guitar.com/search.php?search_type=title&value={q}` |
-| | Songsterr (tabs) | `https://www.songsterr.com/?pattern={q}` |
-| | Musicnotes | `https://www.musicnotes.com/search/go?w={q}` |
-
-Enlaces con `target="_blank" rel="noopener noreferrer"`. Textos de ayuda de legacy, quitando la referencia a "De
-oído" como alternativa a Claude.
-
-### 16.3 Pegar texto ABC
+### 16.4 Pegar texto ABC
 
 `<textarea>` monoespaciado con placeholder de ejemplo, botón "Abrir texto", mensaje de error.
 
-### 16.4 Cerrar
+### 16.5 Cerrar
 
 Botón "Cerrar", clic en el fondo, `Escape`.
 
@@ -1056,3 +1053,37 @@ tenor, guitarra (con tablatura), corno y flauta dulce. Criterios: sin avisos de 
 
 **Creado:** 2026-10-18
 **Generado por:** Oden Forge — Spec Writer
+
+## 27. Catálogo gratuito en línea
+
+Por solicitud del usuario, Buscar o abrir incorpora un catálogo remoto con descarga e importación directa. Primera fuente: corpus público music21 en GitHub, filtrado a compositores clásicos históricos y archivos MusicXML/MXL. Se muestra procedencia y enlace a las condiciones del corpus; no se presenta todo el corpus como CC0 ni como libre de restricciones comerciales. Referencia: https://raw.githubusercontent.com/cuthbertLab/music21/master/music21/corpus/license.txt.
+
+- Un único campo filtra partituras locales, guardadas y el índice remoto. La consulta se filtra localmente; GitHub recibe peticiones del índice y del archivo elegido, sin partituras del usuario.
+- Carga remota explícita, cancelable y con reintento; índice en memoria, máximo 50 resultados visibles y búsqueda por palabras sin acentos. No requiere cuenta, clave, backend ni servicios pagos.
+- Al elegir una obra se descarga solo su archivo y se reutiliza el importador y guardado previo existentes; se informa que Atril abre la primera parte monofónica y mantiene avisos de importación.
+- Errores HTTP/red/límite de API/tamaño no reemplazan la partitura actual. Cerrar cancela la descarga antes de importar. Descargas limitadas y con timeout; URLs limitadas a rutas de la fuente admitida.
+- CSP permite conexión exclusivamente a api.github.com y raw.githubusercontent.com además del propio origen. Ayuda/privacidad refleja la conexión opcional.
+
+### 27.1. Búsqueda por artista
+
+El usuario puede elegir «Artista o compositor» y obtener las partituras asociadas a ese nombre, tanto incluidas/guardadas como remotas. En este modo se filtra el campo compositor, sin confundir títulos con artistas. Al escribir dos caracteres se consulta automáticamente el índice público con espera de 350 ms; después la búsqueda es local y no requiere pulsar otro botón. Se conserva la consulta manual y sus errores/cancelación. El catálogo no incluye artistas que no estén presentes en la fuente.
+
+
+## 28. Foto de partitura manuscrita → editor (requisito confirmado)
+
+Solicitud explícita del usuario: su hermano escribe notas musicales a mano; debe poder fotografiar la hoja, subirla a Atril y obtener una partitura digital editable, reproducible y guardable. Este caso no queda cubierto por preparar/descargar la imagen ni por la guía de Audiveris para impresos. Prioridad pendiente de implementación; no anunciar reconocimiento hasta disponer de un motor verificado.
+
+Criterios de aceptación:
+
+1. Captura o carga de imagen desde móvil/escritorio, orientación y recorte de pentagramas; conservar la imagen original durante la revisión.
+2. Reconocer notas sobre pentagrama, claves/armadura/compás, duraciones, silencios y alteraciones. Primero una melodía monofónica; advertir si hay polifonía, texto ambiguo o símbolos no admitidos. Una lista escrita como Do/Re/Mi no equivale a una partitura sobre pentagrama y requiere tratamiento distinto.
+3. Presentar un borrador junto a la foto, señalar símbolos dudosos y permitir corregir altura/duración/silencios antes de escuchar y aplicar. Nunca reemplazar automáticamente la partitura abierta.
+4. Aplicar al mismo modelo de Atril; guardar en biblioteca y exportar MusicXML/MIDI/ABC como las demás partituras, respetando límites y avisos.
+5. Evaluar con fotografías reales de escritura manual y resultados esperados revisados por una persona, incluidas inclinación/sombras. No acreditar manuscritos solo con capturas de partituras impresas o tests simulados.
+6. Mantener presupuesto gratuito y sin IA externa según las restricciones vigentes. Evaluar licencia, tamaño, rendimiento y ejecución local del motor antes de integrarlo; mostrar cancelación y estado de error en móviles sin recursos suficientes.
+
+Estado actual: solo preparación local de la fotografía y flujo externo para impresos. El reconocimiento manuscrito y su revisión visual están pendientes.
+
+## 29. Compartir por WhatsApp
+
+Acceso directo «WhatsApp» en Exportar. Prepara un PDF y muestra un diálogo. Compartir el archivo requiere un toque explícito con el PDF listo para respetar la activación del usuario de Web Share; el sistema permite elegir WhatsApp. Cancelar el menú no es error. Si el dispositivo no comparte archivos, se ofrece Descargar PDF y un enlace seguro a WhatsApp con texto del título, explicando que el PDF debe adjuntarse manualmente. Nunca se afirma que wa.me adjunte un archivo ni se envía a un contacto automáticamente.

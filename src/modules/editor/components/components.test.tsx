@@ -17,6 +17,35 @@ describe('PianoKeyboard (T-CMP-01..03)', () => {
     expect(screen.getByRole('button', { name: 'Do4' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Do♯4' })).toBeInTheDocument();
   });
+  it('centra Do4 usando el ancho real y vuelve a medir al cambiar de pantalla', () => {
+    let resize: (() => void) | undefined;
+    const disconnect = vi.fn();
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          resize = callback;
+        }
+        observe() {}
+        disconnect = disconnect;
+      },
+    );
+    const { unmount } = render(<PianoKeyboard onNote={() => {}} />);
+    const keyboard = screen.getByLabelText('Teclado de piano');
+    const scroll = keyboard.parentElement as HTMLDivElement;
+    Object.defineProperty(scroll, 'clientWidth', { value: 390, configurable: true });
+    Object.defineProperty(scroll, 'scrollWidth', { value: 1160, configurable: true });
+    act(() => resize?.());
+    expect(scroll.scrollLeft).toBe(385);
+    Object.defineProperty(scroll, 'clientWidth', { value: 1920, configurable: true });
+    Object.defineProperty(scroll, 'scrollWidth', { value: 1920, configurable: true });
+    act(() => resize?.());
+    expect(scroll.scrollLeft).toBe(0);
+    expect(screen.getByRole('button', { name: 'Do6' }).style.left).toMatch(/%$/);
+    unmount();
+    expect(disconnect).toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
   it('pointerdown en Do4 llama onNote(60) y bloquea el menú contextual', () => {
     const onNote = vi.fn();
     render(<PianoKeyboard onNote={onNote} />);

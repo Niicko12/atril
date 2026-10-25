@@ -13,6 +13,10 @@ import styles from './library.module.css';
 
 const VISIBLE_SAMPLES = SAMPLES.filter((s) => s.verified || import.meta.env.DEV);
 
+function runSafely(action: () => Promise<unknown>): void {
+  void action().catch(() => toast(S.libraryActionFailed));
+}
+
 /** "Mis partituras": lista, papelera, ejemplos y respaldo (library-spec 8-12). */
 export function LibraryOverlay({ onClose }: { onClose(): void }) {
   const [tab, setTab] = useState<'scores' | 'trash'>('scores');
@@ -33,7 +37,10 @@ export function LibraryOverlay({ onClose }: { onClose(): void }) {
   const trash = async (id: string) => {
     await repo.softDelete(id);
     list.refresh();
-    toast(S.movedToTrash, { label: S.undo, run: () => void repo.restore(id).then(list.refresh) });
+    toast(S.movedToTrash, {
+      label: S.undo,
+      run: () => runSafely(() => repo.restore(id).then(list.refresh)),
+    });
   };
   const act = (fn: (id: string) => Promise<unknown>, done?: string) => async (id: string) => {
     await fn(id);
@@ -64,9 +71,9 @@ export function LibraryOverlay({ onClose }: { onClose(): void }) {
               key={item.id}
               item={item}
               current={item.id === currentId}
-              onOpen={(id) => void replaceWith(() => repo.get(id))}
-              onDuplicate={(id) => void act(repo.duplicate.bind(repo), S.copied)(id)}
-              onTrash={(id) => void trash(id)}
+              onOpen={(id) => runSafely(() => replaceWith(() => repo.get(id)))}
+              onDuplicate={(id) => runSafely(() => act(repo.duplicate.bind(repo), S.copied)(id))}
+              onTrash={(id) => runSafely(() => trash(id))}
             />
           ))}
         </ul>
@@ -81,8 +88,8 @@ export function LibraryOverlay({ onClose }: { onClose(): void }) {
             <TrashRow
               key={item.id}
               item={item}
-              onRestore={(id) => void act(repo.restore, S.restoredOne)(id)}
-              onPurge={(id) => void act(repo.purge)(id)}
+              onRestore={(id) => runSafely(() => act(repo.restore, S.restoredOne)(id))}
+              onPurge={(id) => runSafely(() => act(repo.purge)(id))}
             />
           ))}
         </ul>
@@ -99,7 +106,7 @@ export function LibraryOverlay({ onClose }: { onClose(): void }) {
               <button
                 type="button"
                 className={b.btn}
-                onClick={() => void replaceWith(async () => fromSample(s, instrumentId))}
+                onClick={() => runSafely(() => replaceWith(async () => fromSample(s, instrumentId)))}
               >
                 {S.open}
               </button>

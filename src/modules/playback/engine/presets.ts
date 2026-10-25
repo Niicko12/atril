@@ -12,20 +12,29 @@ export interface SustainedPreset {
   depth: number;
   breath?: number;
   sweep?: boolean;
+  harmonics?: readonly number[];
+  body?: readonly (readonly [hz: number, gain: number])[];
 }
 
-/** Tabla 7.3 de playback-spec (valores de legacy). */
+/** Perfiles locales de familias; revisión de color y articulación en playback-spec 24. */
 export const PRESETS: Readonly<Partial<Record<Timbre, SustainedPreset>>> = {
   bow: {
     types: ['sawtooth', 'sawtooth'],
-    detune: 7,
-    lowpass: (f) => 1300 + f * 1.2,
-    q: 1,
-    attack: 0.08,
-    peak: 0.38,
+    detune: 0.6,
+    harmonics: [1, 0.58, 0.76, 0.4, 0.34, 0.21, 0.24, 0.14, 0.11, 0.08, 0.06, 0.04],
+    body: [
+      [460, 3],
+      [1200, -2],
+      [2700, 4],
+    ],
+    breath: 0.012,
+    lowpass: (f) => 2200 + f * 2.2,
+    q: 0.7,
+    attack: 0.045,
+    peak: 0.32,
     vibrato: 5.5,
     vibratoDelay: 0.25,
-    depth: 0.004,
+    depth: 0.003,
   },
   flute: {
     types: ['sine', 'triangle'],
@@ -41,9 +50,14 @@ export const PRESETS: Readonly<Partial<Record<Timbre, SustainedPreset>>> = {
   },
   reed: {
     types: ['square', 'sawtooth'],
-    detune: 4,
+    detune: 0.5,
+    harmonics: [1, 0.15, 0.52, 0.1, 0.28, 0.07, 0.15, 0.04, 0.08],
+    body: [
+      [1200, 2],
+      [2500, -2],
+    ],
     lowpass: (f) => 900 + f * 1.6,
-    q: 2,
+    q: 0.8,
     attack: 0.04,
     peak: 0.3,
     vibrato: 5,
@@ -52,9 +66,14 @@ export const PRESETS: Readonly<Partial<Record<Timbre, SustainedPreset>>> = {
   },
   brass: {
     types: ['sawtooth', 'sawtooth'],
-    detune: 3,
+    detune: 0.4,
+    harmonics: [1, 0.7, 0.4, 0.25, 0.16, 0.1, 0.06, 0.04],
+    body: [
+      [900, 2],
+      [2200, 2],
+    ],
     lowpass: (f) => 700 + f * 2,
-    q: 1.5,
+    q: 0.8,
     attack: 0.05,
     peak: 0.34,
     vibrato: 0,
@@ -64,14 +83,20 @@ export const PRESETS: Readonly<Partial<Record<Timbre, SustainedPreset>>> = {
   },
   voice: {
     types: ['sawtooth', 'triangle'],
-    detune: 5,
-    lowpass: () => 1100,
-    q: 3,
+    detune: 0.8,
+    harmonics: [1, 0.48, 0.26, 0.15, 0.09, 0.06, 0.03],
+    body: [
+      [650, 4],
+      [1400, 3],
+      [2600, 2],
+    ],
+    lowpass: () => 3400,
+    q: 0.7,
     attack: 0.07,
     peak: 0.42,
     vibrato: 5.3,
     vibratoDelay: 0.2,
-    depth: 0.006,
+    depth: 0.0025,
   },
 };
 

@@ -12,7 +12,10 @@ import { initialState, type ScoreState } from './state';
 export interface ScoreActions {
   addNote(midi: Midi | null): void;
   deleteNote(): void;
+  moveNoteToPitch(index: number, midi: Midi): void;
+  moveNotePosition(index: number, targetIndex: number): void;
   setDuration(base: BaseDuration): void;
+  scaleSelectedDuration(factor: 0.5 | 2): void;
   toggleDot(): void;
   select(index: number): void;
   moveSelection(dir: -1 | 1): void;
@@ -34,8 +37,8 @@ export type ScoreStore = ScoreState & ScoreActions;
 
 const firstScore = (): Score => fromSample(SAMPLES[0] as Sample, 'piano');
 
+// eslint-disable-next-line max-lines-per-function -- actions stay explicit in the store registry
 export const useScoreStore = create<ScoreStore>()((set, get) => {
-  /** Aplica el resultado de una acción pura y ejecuta sus efectos. */
   const apply = (o: R.Outcome): R.Outcome => {
     if (o.stop) playbackEngine.stopAll();
     if (o.patch) set(o.patch);
@@ -51,7 +54,10 @@ export const useScoreStore = create<ScoreStore>()((set, get) => {
     ...initialState(firstScore()),
     addNote: (midi) => void apply(R.addNote(get(), midi, Date.now())),
     deleteNote: () => void apply(R.deleteNote(get(), Date.now())),
+    moveNoteToPitch: (index, midi) => void apply(R.moveNoteToPitch(get(), index, midi, Date.now())),
+    moveNotePosition: (index, targetIndex) => void apply(R.moveNotePosition(get(), index, targetIndex, Date.now())),
     setDuration: (base) => void apply(R.setDuration(get(), base, Date.now())),
+    scaleSelectedDuration: (factor) => void apply(R.scaleSelectedDuration(get(), factor, Date.now())),
     toggleDot: () => void apply(R.toggleDot(get(), Date.now())),
     select: (index) => void apply(R.select(get(), index)),
     moveSelection: (dir) => void apply(R.moveSelection(get(), dir)),

@@ -22,7 +22,9 @@ import {
   useTabGuard,
 } from '@/modules/library';
 import { playbackEngine } from '@/modules/playback';
-import { ScoreSheet, ScoreStatus } from '@/modules/score-view';
+import { ScoreSheet, ScoreStatus, ScoreNavigator } from '@/modules/score-view';
+import { SoundStatus } from '@/modules/sound-library';
+import { loadPianoRoll, pianoRollStrings as P } from '@/modules/piano-roll';
 import { buttonStyles as b } from '@/shared/components/overlay';
 import { useArmed } from '@/shared/hooks/use-armed';
 import { LazyPanelBoundary } from '@/shared/components/lazy-panel';
@@ -35,6 +37,7 @@ const LibraryOverlay = lazy(loadLibraryOverlay);
 const FindOverlay = lazy(loadFindOverlay);
 const EarPanel = lazy(loadEarPanel);
 const HelpOverlay = lazy(loadHelpOverlay);
+const PianoRollOverlay = lazy(loadPianoRoll);
 
 function togglePlay(): void {
   if (playbackEngine.isPlaying) return playbackEngine.stopAll();
@@ -44,6 +47,7 @@ function togglePlay(): void {
     fromIndex: Math.max(0, s.selection),
     tempo: s.score.tempo,
     timbre: selectInstrument(s).timbre,
+    instrumentId: s.score.instrumentId,
   });
 }
 
@@ -53,18 +57,23 @@ async function newScore(): Promise<void> {
   scrollTo({ top: 0 });
 }
 
+function OtherTabBanner({ open, saved }: { open: boolean; saved: boolean }) {
+  return (open || saved) && <p className={styles.banner}>{saved ? L.otherTabSaved : L.otherTab}</p>;
+}
+
 /** Layout de atril (editor-spec 2) con biblioteca y guardado automático (library-spec). */
 export function AppShell() {
   const [library, setLibrary] = useState(false);
   const [find, setFind] = useState(false);
   const [ear, setEar] = useState(false);
   const [help, setHelp] = useState(false);
+  const [pianoRoll, setPianoRoll] = useState(false);
   const enter = useNoteInput();
   const enterFromKeyboard = useCallback(
     (midi: number) => enter(midi, document.querySelector<HTMLElement>(`[data-midi="${midi}"]`)),
     [enter],
   );
-  const isOverlayOpen = useCallback(() => library || find || help, [library, find, help]);
+  const isOverlayOpen = useCallback(() => library || find || help || pianoRoll, [library, find, help, pianoRoll]);
   useKeyboardShortcuts({ enter: enterFromKeyboard, togglePlay, isOverlayOpen });
   useEffect(() => startAutosave(), []);
   const { otherTabOpen, otherTabSaved } = useTabGuard();
@@ -72,6 +81,7 @@ export function AppShell() {
   const closeLibrary = useCallback(() => setLibrary(false), []);
   const closeFind = useCallback(() => setFind(false), []);
   const closeHelp = useCallback(() => setHelp(false), []);
+  const closePianoRoll = useCallback(() => setPianoRoll(false), []);
   const closeEar = useCallback(() => setEar(false), []);
 
   return (
@@ -101,9 +111,7 @@ export function AppShell() {
           </div>
         </header>
         <InstallHint />
-        {(otherTabOpen || otherTabSaved) && (
-          <p className={styles.banner}>{otherTabSaved ? L.otherTabSaved : L.otherTab}</p>
-        )}
+        <OtherTabBanner open={otherTabOpen} saved={otherTabSaved} />
         <ScoreMetaForm />
         <ViewBar />
         {ear && (
@@ -115,6 +123,20 @@ export function AppShell() {
         )}
         <ImportWarnings />
         <ScoreSheet />
+        <ScoreNavigator />
+        <SoundStatus />
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={b.btn}
+            onClick={() => {
+              setEar(false);
+              setPianoRoll(true);
+            }}
+          >
+            {P.open}
+          </button>
+        </div>
         <div className={styles.statusRow}>
           <ScoreStatus />
           <SaveBadge />
@@ -123,6 +145,13 @@ export function AppShell() {
         <Toast />
       </main>
       <InputDock />
+      {pianoRoll && (
+        <Suspense fallback={null}>
+          <LazyPanelBoundary onClose={closePianoRoll}>
+            <PianoRollOverlay onClose={closePianoRoll} />
+          </LazyPanelBoundary>
+        </Suspense>
+      )}
       {find && (
         <Suspense fallback={null}>
           <LazyPanelBoundary onClose={closeFind}>

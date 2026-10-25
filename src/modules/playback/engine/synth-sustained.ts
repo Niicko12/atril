@@ -5,14 +5,31 @@ import { track } from './voices';
 
 const releaseEnd = (v: Voice): number => v.t0 + v.dur + 0.25;
 
-function vibrato(v: Voice, p: SustainedPreset, f: number, oscs: OscillatorNode[]): void {
+const waveCache = new WeakMap<BaseAudioContext, Map<SustainedPreset, PeriodicWave>>();
+function wave(c: AudioContext, p: SustainedPreset): PeriodicWave | null {
+  if (!p.harmonics) return null;
+  let cache = waveCache.get(c);
+  if (!cache) {
+    cache = new Map();
+    waveCache.set(c, cache);
+  }
+  let result = cache.get(p);
+  if (!result) {
+    result = c.createPeriodicWave(new Float32Array(p.harmonics.length + 1), Float32Array.from([0, ...p.harmonics]));
+    cache.set(p, result);
+  }
+  return result;
+}
+
+function vibrato(v: Voice, p: SustainedPreset, oscs: OscillatorNode[]): void {
   const lfo = v.c.createOscillator();
   const lg = v.c.createGain();
   lfo.frequency.value = p.vibrato;
   lg.gain.setValueAtTime(0, v.t0);
-  lg.gain.linearRampToValueAtTime(f * p.depth, v.t0 + p.vibratoDelay + 0.2);
+  lg.gain.setValueAtTime(0, v.t0 + p.vibratoDelay);
+  lg.gain.linearRampToValueAtTime(1200 * Math.log2(1 + p.depth), v.t0 + p.vibratoDelay + 0.2);
   lfo.connect(lg);
-  oscs.forEach((o) => lg.connect(o.frequency));
+  oscs.forEach((o) => lg.connect(o.detune));
   lfo.start(v.t0);
   lfo.stop(releaseEnd(v) + 0.1);
   track(lfo);
@@ -39,7 +56,7 @@ function breath(v: Voice, level: number, f: number, env: GainNode): void {
   track(ns);
 }
 
-function filter(v: Voice, p: SustainedPreset, f: number): BiquadFilterNode {
+function filter(v: Voice, p: SustainedPreset, f: number): AudioNode {
   const lp = v.c.createBiquadFilter();
   const target = Math.min(9000, p.lowpass(f));
   lp.type = 'lowpass';
@@ -49,14 +66,26 @@ function filter(v: Voice, p: SustainedPreset, f: number): BiquadFilterNode {
     lp.frequency.setValueAtTime(p.lowpass(f) * 0.4, v.t0);
     lp.frequency.exponentialRampToValueAtTime(target, v.t0 + 0.08);
   }
-  return lp;
+  let tail: AudioNode = lp;
+  for (const [hz, gain] of p.body ?? []) {
+    const body = v.c.createBiquadFilter();
+    body.type = 'peaking';
+    body.frequency.value = hz;
+    body.Q.value = 1.2;
+    body.gain.value = gain;
+    tail.connect(body);
+    tail = body;
+  }
+  return tail;
 }
 
 function oscillators(v: Voice, p: SustainedPreset, f: number, into: AudioNode): OscillatorNode[] {
+  const custom = wave(v.c, p);
   return p.types.map((type, i) => {
     const o = v.c.createOscillator();
     const g = v.c.createGain();
-    o.type = type;
+    if (custom) o.setPeriodicWave(custom);
+    else o.type = type;
     o.frequency.value = f;
     o.detune.value = i ? p.detune : -p.detune;
     g.gain.value = i ? 0.5 : 0.7;
@@ -74,13 +103,15 @@ export function sustained(v: Voice, p: SustainedPreset): void {
   lp.connect(env);
   env.connect(v.out);
   const oscs = oscillators(v, p, f, lp);
-  const hold = Math.max(v.t0 + p.attack + 0.01, v.t0 + v.dur - 0.03);
-  if (p.vibrato) vibrato(v, p, f, oscs);
+  const attack = Math.min(p.attack, v.dur * 0.35);
+  const hold = v.t0 + v.dur;
+  const release = Math.min(0.18, Math.max(0.025, v.dur * 0.3));
+  if (p.vibrato && v.dur > p.vibratoDelay + 0.08) vibrato(v, p, oscs);
   if (p.breath) breath(v, p.breath, f, env);
   env.gain.setValueAtTime(0.0001, v.t0);
-  env.gain.exponentialRampToValueAtTime(p.peak, v.t0 + p.attack);
-  env.gain.setValueAtTime(p.peak * 0.85, hold);
-  env.gain.exponentialRampToValueAtTime(0.0003, hold + 0.18);
+  env.gain.exponentialRampToValueAtTime(p.peak, v.t0 + attack);
+  env.gain.linearRampToValueAtTime(p.peak * 0.85, hold);
+  env.gain.exponentialRampToValueAtTime(0.0003, hold + release);
   for (const o of oscs) {
     o.start(v.t0);
     o.stop(hold + 0.25);

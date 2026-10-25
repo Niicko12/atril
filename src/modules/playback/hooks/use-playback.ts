@@ -1,8 +1,9 @@
 import { useCallback, useSyncExternalStore } from 'react';
-import type { Note, Timbre } from '@/core';
+import type { InstrumentId, Note, Timbre } from '@/core';
 import { playbackEngine } from '../engine';
 
 export interface PlayArgs {
+  instrumentId?: InstrumentId;
   notes: readonly Note[];
   fromIndex: number;
   tempo: number;

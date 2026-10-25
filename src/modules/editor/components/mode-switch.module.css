@@ -1,6 +1,6 @@
 .bar {
-  max-width: 980px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 0 12px 6px;
   display: flex;
   align-items: center;
@@ -31,4 +31,16 @@
 .hint {
   font-size: 11px;
   color: var(--muted);
+}
+
+@media (pointer: coarse) {
+  .seg button {
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bar {
+    padding-inline: clamp(16px, 1.25vw, 32px);
+  }
 }

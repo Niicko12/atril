@@ -1,0 +1,7 @@
+FluidR3 General MIDI SoundFont — sampled instrument audio.
+Soundfont by Frank Wen and contributors. MP3 rendering/distribution: gleitz/midi-js-soundfonts; abcjs mirror maintained by Paul Rosen.
+License: Creative Commons Attribution 3.0 Unported (CC BY 3.0).
+License text: https://creativecommons.org/licenses/by/3.0/legalcode
+Source and attribution: https://paulrosen.github.io/midi-js-soundfonts/
+Upstream: https://github.com/gleitz/midi-js-soundfonts
+Audio is downloaded from the source on demand; Atril selects octave anchors, retunes playback and applies its own envelope/loop. No third-party audio is bundled in this application.

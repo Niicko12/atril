@@ -6,6 +6,7 @@ import { buttonStyles as b } from '@/shared/components/overlay';
 import { toast } from '@/shared/toast';
 import { fileName } from '../services/file-names';
 import { S } from '../strings';
+import { WhatsAppButton } from './whatsapp-button';
 import { ImageOverlay } from './image-overlay';
 import styles from './export.module.css';
 
@@ -69,6 +70,7 @@ export function ExportBar() {
           {S.share}
         </button>
       )}
+      <WhatsAppButton disabled={busy} />
       <button type="button" className={b.btn} disabled={busy} onClick={() => void zip()}>
         {S.zip}
       </button>

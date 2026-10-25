@@ -16,7 +16,8 @@
 }
 .info {
   flex: 1;
-  min-width: 160px;
+  min-width: min(160px, 100%);
+  max-width: 100%;
 }
 .info b {
   display: block;
@@ -100,4 +101,14 @@
   gap: 6px;
   align-items: center;
   font-size: 13px;
+}
+
+.seg {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+@media (pointer: coarse) {
+  .seg button {
+    min-height: 44px;
+  }
 }

@@ -656,3 +656,19 @@ registra nodos creados, conexiones y llamadas a `start`/`stop`/rampas. Las prueb
 
 **Creado:** 2026-10-18
 **Generado por:** Oden Forge — Spec Writer
+
+## Navegación de reproducción por compás — 2026-10-25
+
+ScoreNavigator reutiliza `playbackEngine.play` con la partitura y sus índices originales. Un inicio dentro de un evento ligado o silencio produce una copia de la lista y acorta únicamente ese evento en la copia; `fromIndex` apunta al índice original, por lo que el resaltado no se desplaza. «Desde la selección» reproduce el evento completo, mientras «Desde el inicio» usa índice 0. Navegar detiene la reproducción; el modelo y las exportaciones permanecen intactos.
+
+## 24. Revisión de timbres (2026-10-25)
+
+Por solicitud del usuario, los presets sostenidos dejan de limitarse a parejas de ondas básicas. Cuerdas frotadas, lengüetas, metal y voz usan tablas armónicas propias normalizadas y con eliminación de aliasing del motor Web Audio; flauta conserva una base suave senoidal/triangular. Resonancias peaking modelan color del cuerpo sin copiar grabaciones de terceros. La desafinación se reduce para evitar batidos de efecto acordeón, especialmente en violín.
+
+El vibrato se conecta a detune (cents), permanece exactamente a cero durante el retardo y no aparece en notas más cortas que ese retardo. La envolvente adapta ataque/liberación a la duración para que semicorcheas no se alarguen artificialmente. Todos los osciladores y ruido quedan registrados para detenerse. No se incorporan dependencias, bancos remotos, muestras, IA ni nuevos formatos. Los timbres siguen siendo síntesis por familia, no grabaciones de cada instrumento ni una garantía de realismo acústico. La revisión auditiva en altavoces y audífonos sigue siendo necesaria.
+
+Validación: espectro no senoidal de cuerda, armónicos diferenciados por familia, ausencia de vibrato temprano/corto, afinación sin glissando y tiempos de ataque/liberación/stop para notas muy cortas. Conservar pruebas del programador, privacidad y cancelación. La tabla legacy de 7.3 describe el origen, no los nuevos perfiles.
+
+## 25. Muestras de instrumentos (solicitud posterior)
+
+Se incorpora FluidR3_GM (CC BY3.0) en archivos MP3 por nota del repositorio mantenido por paulrosen para abcjs. Fuente: https://paulrosen.github.io/midi-js-soundfonts/. Carga al reproducir o previsualizar, usando el instrumento concreto, caché de memoria32MB y notas raíz por octava con ajuste de playbackRate. Se conserva síntesis como respaldo indicado si falla red/decodificación. No se envían partituras ni audio; la primera carga necesita conexión. Detener/cambiar partitura invalida arranques tardíos. Un indicador distingue carga, muestras y respaldo. Créditos y fuente en Ayuda.

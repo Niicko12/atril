@@ -97,3 +97,33 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+.seg,
+.move {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+@media (pointer: coarse) {
+  .field input,
+  .field select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .seg button,
+  .btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .meta {
+    grid-template-columns:
+      minmax(180px, 1.6fr) minmax(180px, 1.4fr) minmax(170px, 1fr) minmax(190px, 1fr)
+      minmax(140px, 0.8fr) minmax(90px, 0.5fr);
+    align-items: end;
+  }
+  .wide {
+    grid-column: auto;
+  }
+}

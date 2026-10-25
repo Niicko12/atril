@@ -26,7 +26,7 @@
   color: #6c6a63;
 }
 .nb:global(.down) {
-  background: #e9d6db;
+  background: #c9e1ff;
 }
 .row2 {
   display: flex;
@@ -60,4 +60,16 @@
   height: 28px;
   background: var(--line);
   margin: 0 4px;
+}
+
+@media (max-width: 400px) {
+  .row7 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (pointer: coarse) {
+  .tool {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

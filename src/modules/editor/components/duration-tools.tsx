@@ -23,6 +23,7 @@ export function DurationTools() {
       fromIndex: Math.max(0, s.selection),
       tempo: s.score.tempo,
       timbre: selectInstrument(s).timbre,
+      instrumentId: s.score.instrumentId,
     });
   };
 

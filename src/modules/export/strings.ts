@@ -5,6 +5,13 @@ export const S = {
   copyAbc: 'Copiar texto ABC',
   abcDetails: 'Texto ABC (para otros programas)',
   share: 'Compartir',
+  whatsappHelp: 'El PDF está listo. Abre el menú de compartir y elige WhatsApp y el contacto.',
+  whatsappChoose: 'Compartir PDF · elegir WhatsApp',
+  whatsappManual:
+    'Si tu navegador no comparte archivos, descarga el PDF, abre WhatsApp y adjúntalo en la conversación. El enlace solo lleva el mensaje; no adjunta el archivo.',
+  whatsappOpen: 'Abrir WhatsApp',
+  whatsappFailed: 'No se pudo compartir el archivo. Puedes descargarlo y adjuntarlo manualmente.',
+  whatsappText: (title: string) => `Te comparto la partitura «${title}», preparada con Atril.`,
   preparingPdf: 'Preparando PDF…',
   done: (name: string) => `Listo: ${name}`,
   shared: 'Compartido',

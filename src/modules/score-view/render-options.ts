@@ -15,7 +15,8 @@ function tablature(instrument: Instrument): Tablature {
 const SCREEN = { paddingtop: 4, paddingleft: 0, paddingright: 0, minSpacing: 1.5, color: '#16181a' } as const;
 const EXPORT = { paddingleft: 10, paddingright: 10, minSpacing: 1.6, color: '#000000' } as const;
 
-const perLine = (width: number): number => (width < 480 ? 2 : width < 720 ? 3 : 4);
+const perLine = (width: number): number =>
+  width < 480 ? 2 : width < 720 ? 3 : Math.min(12, Math.max(4, Math.floor(width / 240)));
 
 /** Opciones de abcjs para pantalla y exportación (notation-core-spec 12.3). */
 export function scoreRenderOptions(
@@ -37,7 +38,12 @@ export function scoreRenderOptions(
     foregroundColor: p.color,
   };
   if (mode === 'screen')
-    Object.assign(opts, { paddingtop: SCREEN.paddingtop, add_classes: true, selectionColor: '#b3123e' });
+    Object.assign(opts, {
+      paddingtop: SCREEN.paddingtop,
+      add_classes: true,
+      selectionColor: '#165db2',
+      dragging: true,
+    });
   if (tab) opts.tablature = tablature(tab);
   return opts;
 }

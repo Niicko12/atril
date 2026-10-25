@@ -72,14 +72,14 @@ describe('piano (T-PNO)', () => {
 });
 
 describe('timbres sostenidos (T-SUS)', () => {
-  it.each(Object.entries(PRESETS))('%s usa sus dos ondas', (timbre, p) => {
+  it.each(Object.entries(PRESETS))('%s usa su perfil armónico', (timbre, p) => {
     tone(69, 0, 1, timbre as 'bow');
     expect(
       ctx()
         .sources('osc')
         .slice(0, 2)
         .map((o) => o.type),
-    ).toEqual([...p!.types]);
+    ).toEqual(p!.harmonics ? ['custom', 'custom'] : [...p!.types]);
   });
   it('flauta agrega ruido de aliento; metal barre el filtro', () => {
     tone(72, 0, 1, 'flute');
@@ -148,5 +148,62 @@ describe('programador (T-SCH, T-POS)', () => {
         .every((s) => s.stopCalls > 0),
     ).toBe(true);
     expect(liveCount()).toBe(0);
+  });
+});
+
+describe('articulación y espectro revisados', () => {
+  it('violín usa una tabla armónica rica y estable, con menos de un cent de desafinación', () => {
+    tone(69, 2, 1, 'bow');
+    const oscillators = ctx().sources('osc').slice(0, 2);
+    expect(oscillators.map((o) => o.type)).toEqual(['custom', 'custom']);
+    expect(oscillators.map((o) => o.frequency.value)).toEqual([440, 440]);
+    expect(oscillators.every((o) => Math.abs(o.detune.value) < 1)).toBe(true);
+    const wave = oscillators[0]?.periodicWave as { imag: number[] };
+    expect(wave.imag[0]).toBe(0);
+    expect(wave.imag.slice(2).filter((amplitude) => amplitude > 0.1).length).toBeGreaterThan(4);
+    tone(72, 3, 1, 'bow');
+    expect(
+      ctx()
+        .sources('osc')
+        .filter((o) => o.type === 'custom')[2]?.periodicWave,
+    ).toBe(oscillators[0]?.periodicWave);
+  });
+  it('cada familia usa un espectro propio y no reutiliza una onda genérica', () => {
+    for (const timbre of ['bow', 'reed', 'brass', 'voice'] as const) tone(69, 0, 1, timbre);
+    const waves = ctx()
+      .sources('osc')
+      .filter((o) => o.type === 'custom')
+      .map((o) => o.periodicWave);
+    expect(new Set(waves).size).toBe(4);
+  });
+  it('vibrato permanece apagado hasta su retardo y modula cents, no la frecuencia base', () => {
+    tone(69, 2, 1, 'bow');
+    const oscillators = ctx().sources('osc');
+    const lfo = oscillators[2];
+    const gain = lfo?.connected[0] as { gain: FakeParam; connected: unknown[] };
+    expect(gain.gain.calls.slice(0, 2)).toEqual([
+      ['set', 0, 2],
+      ['set', 0, 2.25],
+    ]);
+    expect(gain.connected).toEqual(oscillators.slice(0, 2).map((o) => o.detune));
+    expect(gain.gain.calls[2]?.[1]).toBeLessThan(8);
+  });
+  it('una nota corta no tiene vibrato y su ataque termina antes de la liberación', () => {
+    tone(69, 2, 0.02, 'bow');
+    expect(ctx().sources('osc')).toHaveLength(2);
+    const envelopes = ctx()
+      .nodes.filter((node) => node.kind === 'gain')
+      .map((node) => (node as unknown as { gain: FakeParam }).gain.calls);
+    const envelope = envelopes.find((calls) =>
+      calls.some(([kind, value]) => kind === 'exp' && value === PRESETS.bow?.peak),
+    );
+    expect(envelope).toBeDefined();
+    expect(envelope?.map((call) => call[2])).toEqual([2, 2.007, 2.02, 2.045]);
+    stopVoices();
+    expect(
+      ctx()
+        .sources()
+        .every((source) => source.stopCalls > 0),
+    ).toBe(true);
   });
 });

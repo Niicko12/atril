@@ -2,43 +2,15 @@ import { useState } from 'react';
 import { Overlay, buttonStyles as b } from '@/shared/components/overlay';
 import { errorMessage, LIMITS, openImported, parseAbcText, parseFile } from '../services/import.service';
 import { S } from '../strings';
+import { PhotoScan } from './photo-scan';
+import { SongCatalog } from './song-catalog';
 import styles from './import.module.css';
-
-const PUBLIC: readonly [string, (q: string) => string][] = [
-  ['IMSLP (clásica)', (q) => `https://imslp.org/index.php?title=Special:Search&search=${q}`],
-  ['Mutopia', (q) => `https://www.mutopiaproject.org/cgibin/make-table.cgi?searchingfor=${q}`],
-  ['abcnotation', (q) => `https://abcnotation.com/searchTunes?q=${q}`],
-];
-const LICENSED: readonly [string, (q: string) => string][] = [
-  ['MuseScore', (q) => `https://musescore.com/sheetmusic?text=${q}`],
-  [
-    'Ultimate Guitar (acordes y tabs)',
-    (q) => `https://www.ultimate-guitar.com/search.php?search_type=title&value=${q}`,
-  ],
-  ['Songsterr (tabs)', (q) => `https://www.songsterr.com/?pattern=${q}`],
-  ['Musicnotes', (q) => `https://www.musicnotes.com/search/go?w=${q}`],
-];
-
-function Links({ list, query }: { list: typeof PUBLIC; query: string }) {
-  const q = encodeURIComponent(query.trim());
-  return (
-    <div className={styles.links}>
-      {list.map(([name, url]) => (
-        <a key={name} href={url(q)} target="_blank" rel="noopener noreferrer">
-          {name} ↗
-        </a>
-      ))}
-    </div>
-  );
-}
 
 /** Abrir archivo, enlaces a sitios y pegar ABC (formats-spec 16). Sin "Pedir a Claude" (R1). */
 export function FindOverlay({ onClose }: { onClose(): void }) {
   const [fileMsg, setFileMsg] = useState<{ text: string; err: boolean } | null>(null);
   const [abc, setAbc] = useState('');
   const [abcErr, setAbcErr] = useState('');
-  const [query, setQuery] = useState('');
-
   const open = async (file: File | undefined) => {
     if (!file) return;
     setFileMsg({ text: S.opening(file.name), err: false });
@@ -62,6 +34,11 @@ export function FindOverlay({ onClose }: { onClose(): void }) {
 
   return (
     <Overlay title={S.title} closeLabel={S.close} onClose={onClose}>
+      <SongCatalog onLoaded={onClose} />
+      <details className={styles.optional}>
+        <summary>{S.photoImport}</summary>
+        <PhotoScan />
+      </details>
       <div className={styles.block}>
         <h3>{S.openFile}</h3>
         <p className={styles.muted}>{S.openHelp}</p>
@@ -78,23 +55,6 @@ export function FindOverlay({ onClose }: { onClose(): void }) {
             {fileMsg.text}
           </p>
         )}
-      </div>
-      <div className={styles.block}>
-        <h3>{S.where}</h3>
-        <p className={styles.muted}>{S.whereHelp}</p>
-        <input
-          className={styles.input}
-          type="text"
-          placeholder={S.songName}
-          aria-label={S.songName}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <span className={styles.label}>{S.publicDomain}</span>
-        <Links list={PUBLIC} query={query} />
-        <span className={styles.label}>{S.licensed}</span>
-        <p className={styles.muted}>{S.licensedHelp}</p>
-        <Links list={LICENSED} query={query} />
       </div>
       <div className={styles.block}>
         <h3>{S.pasteAbc}</h3>

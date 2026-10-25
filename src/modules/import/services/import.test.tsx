@@ -85,11 +85,35 @@ describe('FindOverlay', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(useScoreStore.getState().score.notes.map((n) => n.p)).toEqual([67, 69, 71, 72]);
   });
-  it('los enlaces llevan la búsqueda codificada y rel=noopener noreferrer (T-LNK-01)', () => {
+  it('busca por alias y abre la canción conservando el instrumento', async () => {
+    const onClose = vi.fn();
+    act(() => useScoreStore.getState().replaceScore(emptyScore('flauta')));
+    render(<FindOverlay onClose={onClose} />);
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'cascabeles' } });
+    expect(screen.getByText('Jingle Bells')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Editar canción' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    expect(useScoreStore.getState().score.title).toBe('Jingle Bells');
+    expect(useScoreStore.getState().score.instrumentId).toBe('flauta');
+    expect(useScoreStore.getState().score.notes.length).toBeGreaterThan(0);
+  });
+  it('el selector de artista muestra sus canciones incluidas', () => {
     render(<FindOverlay onClose={() => {}} />);
-    fireEvent.change(screen.getByLabelText('Nombre de la canción'), { target: { value: 'La cucaracha' } });
-    const link = screen.getByRole('link', { name: 'IMSLP (clásica) ↗' });
-    expect(link).toHaveAttribute('href', expect.stringContaining('search=La%20cucaracha'));
-    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    fireEvent.change(screen.getByRole('combobox', { name: 'Buscar por' }), { target: { value: 'artist' } });
+    const search = screen.getByRole('searchbox');
+    expect(search).toHaveAccessibleName('Escribe el nombre del artista o compositor');
+    fireEvent.change(search, { target: { value: 'Beethoven' } });
+    expect(screen.getByText('Himno de la alegría')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Editar canción' })).toBeInTheDocument();
+    fireEvent.change(search, { target: { value: 'Estrellita' } });
+    expect(screen.queryByRole('button', { name: 'Editar canción' })).not.toBeInTheDocument();
+  });
+  it('permite volver al catálogo después de una búsqueda sin coincidencias', () => {
+    render(<FindOverlay onClose={() => {}} />);
+    const search = screen.getByRole('searchbox');
+    fireEvent.change(search, { target: { value: 'zzzinexistente' } });
+    expect(screen.queryByRole('button', { name: 'Editar canción' })).not.toBeInTheDocument();
+    fireEvent.change(search, { target: { value: '  FRERE JACQUES  ' } });
+    expect(screen.getByRole('button', { name: 'Editar canción' })).toBeInTheDocument();
   });
 });

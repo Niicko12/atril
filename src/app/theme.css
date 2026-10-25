@@ -5,12 +5,12 @@
   --fg: #1b2220;
   --muted: #59645f;
   --line: #cdd5d1;
-  --accent: #8e1b3b;
+  --accent: #1755a6;
   --accent-fg: #ffffff;
-  --accent-soft: #f1dde3;
+  --accent-soft: #dceafa;
   --paper: #fffdf7;
   --ink: #16181a;
-  --mark: #b3123e;
+  --mark: #165db2;
   --oor: #a34200;
   --error: #a34200;
   --display: 'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif;
@@ -25,9 +25,9 @@
     --muted: #9aa6a1;
     --error: #f0aa6e;
     --line: #324039;
-    --accent: #e2678a;
-    --accent-fg: #1a0f13;
-    --accent-soft: #3a2129;
+    --accent: #78b8ff;
+    --accent-fg: #081b30;
+    --accent-soft: #173553;
     --paper: #f1ede4;
     color-scheme: dark;
   }
@@ -39,9 +39,9 @@
   --muted: #9aa6a1;
   --error: #f0aa6e;
   --line: #324039;
-  --accent: #e2678a;
-  --accent-fg: #1a0f13;
-  --accent-soft: #3a2129;
+  --accent: #78b8ff;
+  --accent-fg: #081b30;
+  --accent-soft: #173553;
   --paper: #f1ede4;
   color-scheme: dark;
 }

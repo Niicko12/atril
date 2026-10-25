@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import type { Midi } from '@/core';
 import { midiName } from '@/core';
 import { S } from '../strings';
@@ -40,8 +40,17 @@ export const PianoKeyboard = memo(function PianoKeyboard({ onNote }: Props) {
 
   useEffect(() => {
     const sc = scroller.current;
-    if (sc) sc.scrollLeft = 14 * WHITE_WIDTH - Math.max(0, (sc.clientWidth - 14 * WHITE_WIDTH) / 2);
-  }, []);
+    if (!sc) return;
+    const center = () => {
+      const keyWidth = sc.scrollWidth / whiteCount;
+      sc.scrollLeft = Math.max(0, Math.round(14.5 * keyWidth - sc.clientWidth / 2));
+    };
+    center();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(center);
+    observer.observe(sc);
+    return () => observer.disconnect();
+  }, [whiteCount]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-midi]');
@@ -52,7 +61,7 @@ export const PianoKeyboard = memo(function PianoKeyboard({ onNote }: Props) {
     <div className={styles.scroll} ref={scroller}>
       <div
         className={styles.kbd}
-        style={{ width: whiteCount * WHITE_WIDTH }}
+        style={{ '--white-count': whiteCount, minWidth: whiteCount * WHITE_WIDTH } as CSSProperties}
         onPointerDown={handlePointerDown}
         onClick={(e) => {
           if (e.detail !== 0) return;
@@ -69,7 +78,7 @@ export const PianoKeyboard = memo(function PianoKeyboard({ onNote }: Props) {
             type="button"
             data-midi={k.midi}
             className={k.black ? styles.black : `${styles.white} ${k.label ? styles.c : ''}`}
-            style={{ left: k.left }}
+            style={{ left: `${(k.left / (whiteCount * WHITE_WIDTH)) * 100}%` }}
             aria-label={midiName(k.midi)}
           >
             {k.label}

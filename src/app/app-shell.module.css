@@ -1,7 +1,11 @@
 .wrap {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 14px 16px calc(var(--dock-h, 220px) + 24px);
+  width: 100%;
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(14px, env(safe-area-inset-top, 0px)) max(clamp(16px, 1.25vw, 32px), env(safe-area-inset-right, 0px))
+    calc(var(--dock-h, 220px) + 24px) max(clamp(16px, 1.25vw, 32px), env(safe-area-inset-left, 0px));
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -43,4 +47,22 @@
   padding: 8px 10px;
   font-size: 13px;
   margin: 0;
+}
+
+.wrap > * {
+  min-width: 0;
+}
+.banner {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 400px) {
+  .wrap {
+    padding-inline: max(10px, env(safe-area-inset-left, 0px)) max(10px, env(safe-area-inset-right, 0px));
+  }
+  .actions {
+    width: 100%;
+  }
+  .actions > button {
+    flex: 1 1 auto;
+  }
 }

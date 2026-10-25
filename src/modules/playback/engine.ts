@@ -1,5 +1,7 @@
+import { track } from './engine/voices';
+import { prepareSounds, sampledTone, soundStatus } from '@/modules/sound-library';
 import { toast } from '@/shared/toast';
-import { getContext, isAudioSupported } from './engine/context';
+import { getContext, getMaster, isAudioSupported } from './engine/context';
 import { unlock } from './engine/ios-unlock';
 import { START_DELAY_SEC, TICK_MS, buildEvents, eventAt, scheduleWindow, type PlayEvent } from './engine/scheduler';
 import { tone } from './engine/tone';
@@ -23,6 +25,7 @@ const DUR_FACTOR = 0.92;
 let timer: ReturnType<typeof setInterval> | null = null;
 let raf = 0;
 let playing = false;
+let generation = 0;
 const listeners = new Set<(playing: boolean) => void>();
 const setPositionDefault = (i: number) => usePlaybackPositionStore.getState().set(i);
 
@@ -33,6 +36,8 @@ function setPlaying(v: boolean): void {
 }
 
 function stopAll(): void {
+  generation++;
+  if (soundStatus.get().startsWith('Cargando')) soundStatus.set('Carga de sonido detenida');
   if (timer) clearInterval(timer);
   timer = null;
   if (typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(raf);
@@ -41,7 +46,7 @@ function stopAll(): void {
   setPlaying(false);
 }
 
-function startClock(events: PlayEvent[], startAt: number, opts: PlayOptions): void {
+function startClock(events: PlayEvent[], startAt: number, opts: PlayOptions, samples = false): void {
   const c = getContext();
   const onPosition = opts.onPosition ?? setPositionDefault;
   const total = events.length ? (events[events.length - 1] as PlayEvent).e : 0;
@@ -49,7 +54,7 @@ function startClock(events: PlayEvent[], startAt: number, opts: PlayOptions): vo
   let last = -2;
   const schedule = () => {
     next = scheduleWindow({ events, next, startAt, now: c.currentTime }, (ev, when) =>
-      tone(ev.p as number, when, (ev.e - ev.s) * DUR_FACTOR, opts.timbre),
+      playTone(ev.p as number, when, (ev.e - ev.s) * DUR_FACTOR, { ...opts, samples }),
     );
     if (next >= events.length && timer) clearInterval(timer);
   };
@@ -69,16 +74,67 @@ function startClock(events: PlayEvent[], startAt: number, opts: PlayOptions): vo
   raf = requestAnimationFrame(frame);
 }
 
+function playTone(midi: number, start: number, duration: number, opts: PlayOptions & { samples: boolean }): void {
+  if (
+    opts.samples &&
+    opts.instrumentId &&
+    sampledTone({ context: getContext(), output: getMaster(), id: opts.instrumentId, midi, start, duration, track })
+  )
+    return;
+  tone(midi, start, duration, opts.timbre);
+}
+function startPrepared(opts: PlayOptions, events: PlayEvent[], token: number): void {
+  if (!opts.instrumentId) {
+    startClock(events, getContext().currentTime + START_DELAY_SEC, opts);
+    return;
+  }
+  soundStatus.set('Cargando muestras del instrumento…');
+  void prepareSounds(
+    getContext(),
+    opts.instrumentId,
+    events.flatMap((event) => (event.p === null ? [] : [event.p])),
+  ).then((samples) => {
+    if (token !== generation) return;
+    soundStatus.set(
+      samples
+        ? 'Sonido: muestras de instrumento · FluidR3'
+        : 'Sin muestras: sonido sintetizado de respaldo. Comprueba tu conexión.',
+    );
+    startClock(events, getContext().currentTime + START_DELAY_SEC, opts, samples);
+  });
+}
+
 /** Motor de reproducción (playback-spec 3, 8-12). */
 export const playbackEngine: PlaybackEngine = {
   getContext,
   unlock() {
     if (isAudioSupported()) unlock();
   },
-  preview(midi, timbre) {
+  preview(midi, timbre, instrumentId) {
     if (!audioReady()) return;
     unlock();
-    tone(midi, getContext().currentTime + 0.01, PREVIEW_SEC, timbre);
+    if (!instrumentId) {
+      tone(midi, getContext().currentTime + 0.01, PREVIEW_SEC, timbre);
+      return;
+    }
+    const token = generation;
+    soundStatus.set('Cargando muestra del instrumento…');
+    void prepareSounds(getContext(), instrumentId, [midi]).then((samples) => {
+      if (token !== generation) return;
+      soundStatus.set(
+        samples
+          ? 'Sonido: muestras de instrumento · FluidR3'
+          : 'Sin muestras: sonido sintetizado de respaldo. Comprueba tu conexión.',
+      );
+      playTone(midi, getContext().currentTime + 0.01, PREVIEW_SEC, {
+        notes: [],
+        tempo: 100,
+        fromIndex: 0,
+        timbre,
+        instrumentId,
+        samples,
+      });
+    });
   },
   play(opts) {
     stopAll();
@@ -87,7 +143,7 @@ export const playbackEngine: PlaybackEngine = {
     const from = Math.min(Math.max(0, opts.fromIndex), opts.notes.length - 1);
     const events = buildEvents(opts.notes, from, opts.tempo);
     setPlaying(true);
-    startClock(events, getContext().currentTime + START_DELAY_SEC, opts);
+    startPrepared(opts, events, generation);
   },
   stopAll,
   get isPlaying() {

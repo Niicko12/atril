@@ -73,6 +73,6 @@ describe('ScoreStatus (T-STA-01/02)', () => {
     expect(screen.getByText('2 notas · 1 compases')).toBeInTheDocument();
     expect(screen.getByText('Tonalidad escrita: La mayor')).toBeInTheDocument();
     expect(screen.getByText('1 nota fuera del rango de saxofón alto en mi♭ (Do♯3–La5)')).toBeInTheDocument();
-    expect(screen.getByText('Nota 2 seleccionada (Do4) · toca otra nota para cambiarla')).toBeInTheDocument();
+    expect(screen.getByText('Nota 2 seleccionada (Do4) · arrastra con el mouse: ↕ altura · ↔ posición')).toBeInTheDocument();
   });
 });

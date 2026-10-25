@@ -527,7 +527,7 @@ historial (vive solo en memoria y se pierde al recargar; ver pregunta abierta Q2
 | Estado | Condición | Indicador visual |
 |---|---|---|
 | **Añadiendo** | `selection = −1` | Ninguna nota resaltada; status sin "seleccionada" |
-| **Seleccionada(i)** | `0 ≤ selection < length` | Nota i en color `--mark`; status "Nota i+1 seleccionada (Mi4) · toca otra nota para cambiarla" |
+| **Seleccionada(i)** | `0 ≤ selection < length` | Nota i en color `--mark`; status muestra altura, movimiento vertical/horizontal y acciones de posición/borrado |
 
 ### 7.2 Transiciones
 
@@ -675,6 +675,7 @@ Se registra un único listener `keydown` en `document` desde `AppShell`.
 | Z / X | Octava −1 / +1 (2..6), toast "Octava N" |
 | 1 2 3 4 5 | Redonda, blanca, negra, corchea, semicorchea |
 | `.` | Puntillo |
+| `[` / `]` | Reducir a la mitad / duplicar la duración de la nota seleccionada (nuevo; tope 1–48 semicorcheas) |
 | 0 o R | Silencio |
 | Backspace / Delete | Borrar (preventDefault) |
 | Espacio | Reproducir / detener (preventDefault) |
@@ -686,6 +687,10 @@ Se registra un único listener `keydown` en `document` desde `AppShell`.
 
 MIDI de cada tecla: `12·(keyboardOctave + 1) + offset`. Si la tecla del piano en pantalla correspondiente está
 visible, se le aplica el `flash`.
+
+En la partitura, arrastrar verticalmente cambia la altura diatónica de la nota y arrastrar horizontalmente
+reordena el evento en la secuencia temporal, conservando su duración. Los botones de flecha del estado mueven
+el evento un lugar antes o después; ambos caminos generan una única entrada de deshacer.
 
 `e.repeat === true` (tecla mantenida) se ignora para notas, silencio y borrar, para no escribir ráfagas
 accidentales (cambio respecto a legacy, que escribía una nota por cada repetición del sistema operativo).
@@ -1173,3 +1178,17 @@ Cada diferencia debe aparecer en `tests/fixtures/golden/EXCEPTIONS.md` si afecta
 
 **Creado:** 2026-10-18
 **Generado por:** Oden Forge — Spec Writer
+
+## 27. Adaptación a pantallas y formas de entrada
+
+La interfaz debe mantener accesibles el editor y sus diálogos desde 320 px de ancho, en móvil, tablet y escritorio. Los campos y resultados largos se ajustan sin ensanchar la página; el desplazamiento horizontal se reserva al piano y diapasón. Los márgenes respetan áreas seguras de los cuatro bordes. En pantallas de poca altura, el dock limita su altura y permite desplazar sus controles sin tapar toda la partitura. Los diálogos tienen altura acotada al viewport dinámico, con su cabecera de cierre visible. En punteros táctiles los controles generales alcanzan 44 px y los campos usan 16 px para evitar el zoom automático al enfocar en iOS. Las superficies musicales conservan su geometría de notas y desplazamiento propio.
+
+La matriz automatizada de regresión incluye 320×568, 390×844, 768×1024, 1440×900 y 844×390. Comprueba ancho de página, formularios y diálogos con textos largos, y acceso a los modos de entrada con poca altura. El viewport emulado no equivale a probar todos los sistemas operativos, teclados virtuales o dispositivos físicos.
+
+### 27.1. Área de trabajo de ancho completo
+
+Por instrucción explícita del usuario, Atril ocupa el ancho disponible de la ventana y deja de usar una columna central limitada a 980 px. El formulario, la hoja de partitura y el dock comparten márgenes laterales reducidos. En escritorio el formulario distribuye sus seis campos en una fila con proporciones según el contenido; en monitores grandes no se introduce un límite global de ancho. La hoja utiliza el ancho medido por ResizeObserver y abcjs. Los diálogos de lectura conservan su ancho acotado. Se añade regresión de 1920×1080 y 2560×1440, exigiendo que el área principal y la partitura ocupen al menos el 90 % del ancho en escritorio.
+
+### 27.2. Superficies musicales fluidas
+
+El teclado Do2–Do6 mantiene sus posiciones relativas y proporción entre teclas blancas y negras. Ocupa todo el ancho disponible cuando hay espacio; en pantallas pequeñas conserva un mínimo de 40 px por tecla blanca y permite desplazamiento horizontal. La posición inicial centra Do4 usando el ancho real, también al redimensionar. El diapasón reparte el espacio entre trastes por encima de su ancho mínimo; en móvil se desplaza. Do-Re-Mi pasa a dos filas de notas en pantallas estrechas. No basta con ampliar el contenedor dejando las teclas a un tamaño fijo.

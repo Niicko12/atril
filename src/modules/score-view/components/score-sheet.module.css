@@ -17,6 +17,8 @@
   max-width: 100%;
   height: auto;
 }
+.paper :global([selectable="true"]) { cursor: grab; }
+.paper :global(.abcjs-dragging-in-progress [selectable="true"]) { cursor: grabbing; }
 .paper :global(.sel),
 .paper :global(.sel *) {
   fill: var(--mark) !important;

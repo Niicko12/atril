@@ -11,6 +11,8 @@ export const S = {
   nothingToRedo: 'Nada que rehacer',
   maxNotes: 'Llegaste al máximo de 3 000 notas.',
   atRangeLimit: 'Esa nota ya está en el límite del rango.',
+  durationMin: 'La duración ya está en el mínimo.',
+  durationMax: 'La duración ya está en el máximo.',
   clipped: (n: number) => `${n} ${n === 1 ? 'nota quedó' : 'notas quedaron'} en el límite del rango (La0–Do8).`,
   pianoLabel: 'Teclado de piano',
   namesGroup: 'Notas por nombre',

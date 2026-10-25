@@ -7,10 +7,11 @@
 }
 .fb {
   display: grid;
-  grid-template-columns: 34px 46px repeat(15, 48px);
+  grid-template-columns: 34px 46px repeat(15, minmax(48px, 1fr));
   background: linear-gradient(#d9c3a0, #cdb38c);
   touch-action: manipulation;
-  width: max-content;
+  width: 100%;
+  min-width: 800px;
 }
 .lab {
   position: sticky;
@@ -80,4 +81,10 @@
   background: var(--accent);
   color: var(--accent-fg);
   opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .cell {
+    min-height: 44px;
+  }
 }

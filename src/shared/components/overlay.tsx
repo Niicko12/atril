@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, type ReactNode } from 'react';
 import styles from './overlay.module.css';
 
 interface Props {
+  wide?: boolean;
   title: string;
   closeLabel: string;
   onClose(): void;
@@ -35,7 +36,7 @@ function trapFocus(e: KeyboardEvent, panel: HTMLElement): void {
   items[next]?.focus();
 }
 /** Escape, foco atrapado y restaurado al cerrar, fondo sin desplazamiento (library-spec 22). */
-export function Overlay({ title, closeLabel, onClose, children }: Props) {
+export function Overlay({ title, closeLabel, onClose, children, wide = false }: Props) {
   const id = useId(),
     panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -60,7 +61,14 @@ export function Overlay({ title, closeLabel, onClose, children }: Props) {
   }, [onClose]);
   return (
     <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panel} className={styles.panel} role="dialog" aria-modal="true" aria-labelledby={id} tabIndex={-1}>
+      <div
+        ref={panel}
+        className={`${styles.panel} ${wide ? styles.wide : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={id}
+        tabIndex={-1}
+      >
         <div className={styles.head}>
           <h2 id={id}>{title}</h2>
           <button type="button" className={styles.btn} onClick={onClose}>

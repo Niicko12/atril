@@ -16,13 +16,14 @@ function flash(el: HTMLElement | null | undefined): void {
 export function useNoteInput() {
   const addNote = useScoreStore((s) => s.addNote);
   const timbre = useScoreStore((s) => selectInstrument(s).timbre);
+  const instrumentId = useScoreStore((s) => s.score.instrumentId);
   return useCallback(
     (midi: Midi, el?: HTMLElement | null) => {
       playbackEngine.unlock();
-      playbackEngine.preview(midi, timbre);
-      flash(el);
       addNote(midi);
+      playbackEngine.preview(midi, timbre, instrumentId);
+      flash(el);
     },
-    [addNote, timbre],
+    [addNote, timbre, instrumentId],
   );
 }

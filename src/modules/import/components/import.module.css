@@ -39,12 +39,59 @@
   border-color: var(--accent);
 }
 .input {
+  width: 100%;
+  min-width: 0;
   border: 1px solid var(--line);
   background: var(--bg);
   color: var(--fg);
   border-radius: 8px;
   padding: 9px 11px;
   font: inherit;
+}
+.catalog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.catalogRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 9px 10px;
+}
+.info {
+  overflow-wrap: anywhere;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.info b {
+  font-size: 14px;
+}
+.info span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.optional {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.optional > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+}
+.optional[open] > .block {
+  margin-top: 12px;
 }
 .code {
   width: 100%;
@@ -71,6 +118,52 @@
   height: 1px;
   opacity: 0;
 }
+.photoPreview {
+  width: 100%;
+  max-height: min(48vh, 440px);
+  overflow: auto;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.photoPreview img {
+  display: block;
+  max-width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+}
+.photoControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.photoControls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.scanSteps {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+}
+.scanSteps ol {
+  padding-left: 20px;
+  line-height: 1.7;
+}
+.scanSteps a {
+  color: var(--accent);
+}
+.hiddenCanvas {
+  display: none;
+}
 .err {
   color: var(--error);
   font-size: 13px;
@@ -88,4 +181,30 @@
 .warnings ul {
   margin: 0;
   padding-left: 18px;
+}
+
+.catalogRow > button {
+  flex-shrink: 0;
+}
+@media (max-width: 400px) {
+  .catalogRow {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .photoControls label {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+}
+@media (pointer: coarse) {
+  .input,
+  .code {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .optional > summary {
+    min-height: 44px;
+    padding-block: 10px;
+  }
 }

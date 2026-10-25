@@ -90,8 +90,14 @@ export function parseFile(name: string, bytes: Uint8Array): { result: ImportResu
 }
 
 /** Resultado → partitura y al editor (formats-spec 15). Devuelve false si no se pudo guardar la anterior. */
-export async function openImported(result: ImportResult, source: ScoreSource, fallbackTitle: string): Promise<boolean> {
+export async function openImported(
+  result: ImportResult,
+  source: ScoreSource,
+  fallbackTitle: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
   if (!(await prepareReplace())) return false;
+  if (signal?.aborted) return false;
   const current = useScoreStore.getState().score;
   const score: Score = {
     id: crypto.randomUUID(),

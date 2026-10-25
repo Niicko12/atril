@@ -38,6 +38,7 @@ export const S = {
   deleteAll: 'Borrar todo',
   deleteAllConfirm: '¿Borrar todas tus partituras y audios de este dispositivo? No se puede deshacer.',
   deleteAllFailed: 'No se pudieron borrar los datos de Atril. Cierra otras pestañas e inténtalo de nuevo.',
+  libraryActionFailed: 'No se pudo completar la acción. Comprueba el almacenamiento e inténtalo de nuevo.',
   backupFirst: 'Hacer copia primero',
   copied: 'Se creó una copia',
   movedToTrash: 'Se movió a la papelera',

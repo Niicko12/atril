@@ -46,6 +46,11 @@ export class FakeSource extends FakeNode {
   stopped: number | null = null;
   stopCalls = 0;
   type = '';
+  periodicWave: unknown = null;
+  setPeriodicWave(value: unknown) {
+    this.periodicWave = value;
+    this.type = 'custom';
+  }
   buffer: unknown = null;
   loop = false;
   frequency = new FakeParam();
@@ -79,8 +84,16 @@ export class FakeAudioContext {
   createDynamicsCompressor() {
     return Object.assign(new FakeNode('comp', this), { threshold: new FakeParam(), ratio: new FakeParam() });
   }
+  createPeriodicWave(real: Float32Array, imag: Float32Array) {
+    return { real: Array.from(real), imag: Array.from(imag) };
+  }
   createBiquadFilter() {
-    return Object.assign(new FakeNode('biquad', this), { type: '', frequency: new FakeParam(), Q: new FakeParam() });
+    return Object.assign(new FakeNode('biquad', this), {
+      type: '',
+      frequency: new FakeParam(),
+      Q: new FakeParam(),
+      gain: new FakeParam(),
+    });
   }
   createOscillator() {
     return new FakeSource('osc', this);

@@ -1,0 +1,231 @@
+.help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.error {
+  color: var(--error);
+  margin: 0;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.actions label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.actions select,
+.fields input {
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px;
+  min-height: 44px;
+  font: inherit;
+  max-width: 100%;
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  min-width: 0;
+}
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.viewport {
+  overflow: auto;
+  min-width: 0;
+  max-width: 100%;
+  height: clamp(180px, calc(100vh - 400px), 600px);
+  height: clamp(180px, calc(100dvh - 400px), 600px);
+  min-height: 140px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overscroll-behavior: contain;
+  position: relative;
+  isolation: isolate;
+}
+.grid {
+  position: relative;
+  background-color: var(--bg);
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(var(--unit) - 1px),
+    var(--line) calc(var(--unit) - 1px),
+    var(--line) var(--unit)
+  );
+  background-position-x: 54px;
+}
+.ruler {
+  position: sticky;
+  top: 0;
+  height: var(--row);
+  background: var(--surface);
+  z-index: 4;
+  font-size: 11px;
+}
+.ruler span {
+  position: absolute;
+  white-space: nowrap;
+}
+.pitchRow {
+  position: absolute;
+  width: 100%;
+  height: var(--row);
+  border-top: 1px solid var(--line);
+  pointer-events: none;
+  font-size: 10px;
+}
+.pitchRow span {
+  position: sticky;
+  left: 0;
+  display: inline-block;
+  width: 54px;
+  height: 100%;
+  padding: 3px 4px;
+  background: var(--surface);
+  color: var(--muted);
+  z-index: 2;
+}
+.event {
+  position: absolute;
+  display: flex;
+  height: max(8px, calc(var(--row) - 2px));
+  z-index: 2;
+  touch-action: none;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  box-shadow: 0 0 0 1px var(--bg);
+}
+.selected {
+  outline: 2px solid var(--fg);
+  outline-offset: 1px;
+  z-index: 3;
+}
+.note,
+.resize {
+  background: transparent;
+  color: inherit;
+  font: 500 10px var(--body);
+  padding: 0 3px;
+  border: none;
+  touch-action: none;
+  cursor: grab;
+}
+.note {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: left;
+}
+.resize {
+  width: 10px;
+  flex-shrink: 0;
+  padding: 0;
+  cursor: ew-resize;
+  border-left: 1px solid var(--bg);
+}
+@media (max-width: 400px) {
+  .fields {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fields label:first-child {
+    grid-column: 1 / -1;
+  }
+  .actions > button {
+    flex: 1 1 auto;
+  }
+}
+@media (pointer: coarse) {
+  .fields input,
+  .actions select {
+    font-size: 16px;
+  }
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+  min-width: 0;
+}
+.inspector {
+  min-width: 0;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.instructions {
+  color: var(--muted);
+  font-size: 12px;
+}
+.instructions summary,
+.secondary summary {
+  cursor: pointer;
+}
+.secondary {
+  font-size: 12px;
+}
+.secondary .actions {
+  margin-top: 8px;
+}
+.footer {
+  position: sticky;
+  bottom: -18px;
+  background: var(--surface);
+  z-index: 5;
+  padding: 10px 0;
+  margin-bottom: -10px;
+  border-top: 1px solid var(--line);
+}
+@media (min-width: 900px) {
+  .inspector .fields {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .inspector .fields label {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .inspector input {
+    width: 94px;
+    min-width: 0;
+  }
+}
+@media (max-width: 899px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .viewport {
+    height: clamp(180px, 35dvh, 340px);
+  }
+}
+@media (max-width: 400px) {
+  .footer {
+    bottom: -14px;
+  }
+}

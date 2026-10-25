@@ -1,6 +1,8 @@
 import type { Midi, Note, Score, ScoreMeta, View } from '@/core';
 import {
   MAX_NOTES,
+  MIDI_MAX,
+  MIDI_MIN,
   cursorUnits,
   getInstrument,
   insertOrReplace,
@@ -51,6 +53,28 @@ export function deleteNote(s: ScoreState, now: number): Outcome {
   return { patch: changed(s, { ...s.score, notes: r.notes }, now, { selection, lastIndex: -1 }), stop: true };
 }
 
+export function moveNoteToPitch(s: ScoreState, index: number, midi: Midi, now: number): Outcome {
+  const note = s.score.notes[index];
+  const pitch = Math.round(Math.min(MIDI_MAX, Math.max(MIDI_MIN, midi)));
+  if (!note || note.p == null || note.p === pitch) return { patch: null };
+  const notes = s.score.notes.map((item, i) => (i === index ? { ...item, p: pitch } : item));
+  return { patch: changed(s, { ...s.score, notes }, now, { selection: index, lastIndex: index }), stop: true };
+}
+
+export function moveNotePosition(s: ScoreState, index: number, targetIndex: number, now: number): Outcome {
+  const lastIndex = s.score.notes.length - 1;
+  const note = s.score.notes[index];
+  if (!note || index > lastIndex || targetIndex < 0 || targetIndex > lastIndex || index === targetIndex)
+    return { patch: null };
+  const notes = [...s.score.notes];
+  notes.splice(index, 1);
+  notes.splice(targetIndex, 0, note);
+  return {
+    patch: changed(s, { ...s.score, notes }, now, { selection: targetIndex, lastIndex: targetIndex }),
+    stop: true,
+  };
+}
+
 function withCursor(s: ScoreState, cursor: ScoreState['cursor'], now: number): Outcome {
   if (s.selection < 0) return { patch: { cursor } };
   const notes = setDurationAt(s.score.notes, s.selection, cursorUnits(cursor));
@@ -62,6 +86,16 @@ export const setDuration = (s: ScoreState, base: BaseDuration, now: number): Out
 
 export const toggleDot = (s: ScoreState, now: number): Outcome =>
   s.cursor.base === 1 ? { patch: null } : withCursor(s, { ...s.cursor, dot: !s.cursor.dot }, now);
+
+/** Reduce or doubles the selected event's duration, matching MuseScore's Q/W editing action. */
+export function scaleSelectedDuration(s: ScoreState, factor: 0.5 | 2, now: number): Outcome {
+  const note = s.score.notes[s.selection];
+  if (!note) return { patch: null };
+  const duration = factor === 2 ? Math.min(48, note.d * 2) : Math.max(1, Math.round(note.d / 2));
+  if (duration === note.d) return { patch: null, toast: factor === 2 ? S.durationMax : S.durationMin };
+  const notes = setDurationAt(s.score.notes, s.selection, duration);
+  return { patch: changed(s, { ...s.score, notes }, now) };
+}
 
 export function select(s: ScoreState, index: number): Outcome {
   const valid = index >= 0 && index < s.score.notes.length && index !== s.selection;

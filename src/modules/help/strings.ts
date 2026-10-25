@@ -5,8 +5,9 @@ export const S = {
   start: 'Para empezar',
   steps: [
     'Elige tu instrumento y toca el piano, el diapasón o los botones Do-Re-Mi. Cambia la duración antes de escribir, o selecciona una nota para corregirla.',
-    'Pulsa Reproducir para escuchar. En instrumentos transpositores puedes cambiar entre la partitura escrita y el sonido real.',
-    'Usa Buscar o abrir para importar MusicXML, MIDI o ABC. Puedes descargar PDF, imagen o un ZIP para MuseScore.',
+    'Usa Editor visual para arrastrar notas, ajustar duraciones y escuchar un borrador antes de aplicar. Cancelar conserva la partitura original; Aplicar permite deshacer el conjunto.',
+    'Navega por compases y escucha desde un compás, la nota seleccionada o el inicio. En instrumentos transpositores puedes cambiar entre la partitura escrita y el sonido real.',
+    'Usa Buscar o abrir para buscar partituras clásicas gratuitas en línea y cargarlas directamente, o importar MusicXML, MIDI o ABC. La consulta opcional conecta con GitHub sin enviar tus partituras; revisa las condiciones de la fuente. Los sonidos de instrumentos descargan muestras de FluidR3 al primer uso; necesitan conexión y no envían tus notas. Si fallan, se indica el sonido sintetizado de respaldo. Puedes descargar PDF, imagen o un ZIP para MuseScore.',
   ],
   ear: 'De una grabación a notas',
   earText:
@@ -26,6 +27,7 @@ export const S = {
   keys: [
     ['a w s e d f t g y h u j k o l', 'Notas cromáticas, desde Do.'],
     ['1 · 2 · 3 · 4 · 5', 'Redonda, blanca, negra, corchea y semicorchea.'],
+    ['[ · ]', 'Reducir a la mitad o duplicar la duración de la nota seleccionada.'],
     ['Espacio', 'Reproducir o detener la partitura.'],
     ['Ctrl/Cmd + Z', 'Deshacer; con Mayús, rehacer. Ctrl + Y también rehace.'],
     ['← →', 'Mover la selección; en la onda del audio, mover un segundo.'],
@@ -44,6 +46,7 @@ export const S = {
   licenses: 'Tecnologías y licencias',
 } as const;
 export const LICENSES = [
+  ['FluidR3 · muestras de instrumentos', 'CC BY 3.0', 'fluidsoundfont-notice.txt'],
   ['React', 'MIT', 'react.txt'],
   ['React DOM', 'MIT', 'react-dom.txt'],
   ['abcjs', 'MIT', 'abcjs.txt'],

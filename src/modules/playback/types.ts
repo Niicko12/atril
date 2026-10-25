@@ -1,6 +1,7 @@
-import type { Midi, Note, Timbre } from '@/core';
+import type { InstrumentId, Midi, Note, Timbre } from '@/core';
 
 export interface PlayOptions {
+  instrumentId?: InstrumentId;
   notes: readonly Note[];
   fromIndex: number;
   tempo: number;
@@ -12,7 +13,7 @@ export interface PlayOptions {
 export interface PlaybackEngine {
   getContext(): AudioContext;
   unlock(): void;
-  preview(midi: Midi, timbre: Timbre): void;
+  preview(midi: Midi, timbre: Timbre, instrumentId?: InstrumentId): void;
   play(opts: PlayOptions): void;
   stopAll(): void;
   readonly isPlaying: boolean;

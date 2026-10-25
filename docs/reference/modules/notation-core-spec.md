@@ -570,6 +570,7 @@ Problemas que corrige esta spec:
 abcjs entrega, para cada elemento dibujado, `startChar` (posición en el texto ABC). El `charMap` traduce esa
 posición al índice de la nota en `Score.notes`. Así:
 - Un clic en la partitura selecciona la nota correcta.
+- Arrastrar verticalmente cambia la altura; arrastrar horizontalmente reordena el evento conservando duración. El aviso de selección explica el uso del mouse; un gesto horizontal no dispara también la edición vertical ni selecciona el índice anterior.
 - Las clases de resaltado se aplican a los elementos SVG de cada nota.
 
 ### 11.2 Reglas
@@ -706,7 +707,7 @@ Elementos, en orden, separados visualmente (`aria-live="polite"`):
 | Conteo | Siempre | "N notas · M compases" (M = `ceil(totalUnits / bar)`) |
 | Tonalidad escrita | Instrumento transpositor | "Tonalidad escrita: La mayor" |
 | Fuera de rango | ≥ 1 nota | "N nota(s) fuera del rango de saxofón alto en mi♭ (Do♯3–La5)" en color `--oor` |
-| Selección | Hay selección | "Nota i+1 seleccionada (Mi4) · toca otra nota para cambiarla" (o "(silencio)") en color de acento |
+| Selección | Hay selección | Altura y ayuda de movimiento vertical/horizontal, con acciones para mover el evento y borrarlo |
 | Dibujo diferido | Render lento | "Dibujando…" |
 | Error de tablatura | 14.3 | "No se pudo dibujar la tablatura" |
 
@@ -933,3 +934,15 @@ Diferencias permitidas, registradas en `tests/fixtures/golden/EXCEPTIONS.md`:
 
 **Creado:** 2026-10-18
 **Generado por:** Oden Forge — Spec Writer
+
+## 26. Navegación por compases (mejora inspirada en YuE2-Studio)
+
+- Barra «Navegar por compases» con anterior, siguiente y número de compás, limitada a los compases reales de la partitura. Vacío: controles deshabilitados.
+- Un salto selecciona el evento original que contiene el inicio del compás (incluidos silencios y continuaciones ligadas); no divide ni modifica notas del modelo. El compás elegido se conserva aunque el evento haya comenzado en el anterior.
+- Cambiar la selección desde fuera o editar/cambiar la partitura restablece la referencia al compás de inicio de la nota seleccionada. Navegar detiene la reproducción activa.
+- «Escuchar compás» comienza en el inicio del compás elegido y continúa hasta el final. Si empieza dentro de una nota/silencio, se reproduce solo su duración restante mediante una copia temporal; los índices de resaltado siguen siendo los originales.
+- Acciones explícitas «Desde la nota seleccionada», «Desde el inicio» y «Detener» reutilizan el motor de reproducción. No se altera historial, guardado o contenido exportado. La interfaz se ajusta con flex-wrap, campos y botones táctiles de 44 px.
+
+### Pantallas amplias (2026-10-25)
+
+La hoja usa todo el ancho del monitor. La preferencia de compases por línea crece por encima de 960 px hasta 12, en vez de estirar siempre cuatro compases. En móvil se mantienen 2–3 y en exportación 4 para conservar el formato impreso.
