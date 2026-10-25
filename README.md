@@ -1,14 +1,32 @@
-# Atril
+<div align="center">
+
+# 🎼 Atril
 
 **Editor de partituras y herramienta de práctica musical para computadora, tableta y móvil.**
 
-Atril permite escribir, escuchar, corregir y compartir partituras desde el navegador. Su interfaz se
-adapta a pantallas táctiles, portátiles y monitores amplios, con controles de edición mediante ratón,
-teclado o entrada táctil. El trabajo se guarda en el dispositivo, sin crear una cuenta.
+Escribe, escucha, corrige y comparte partituras desde el navegador. Sin cuentas: tu trabajo se
+guarda en tu dispositivo.
 
-[Aplicación web](https://atril-xi.vercel.app) · [Código fuente](https://github.com/Niicko12/atril) · [Documentación](docs/README.md) · [Verificación](docs/guides/verificacion-local.md)
+[![Abrir Atril](https://img.shields.io/badge/▶_Abrir_Atril-atril--xi.vercel.app-1a56a8?style=for-the-badge)](https://atril-xi.vercel.app)
 
-## Funciones
+![React](https://img.shields.io/badge/React_19-20232a?logo=react&logoColor=61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646cff?logo=vite&logoColor=white)
+![abcjs](https://img.shields.io/badge/notación-abcjs-444)
+![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-ff6f00?logo=tensorflow&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000?logo=vercel&logoColor=white)
+
+[Aplicación web](https://atril-xi.vercel.app) · [Documentación](docs/README.md) · [Verificación](docs/guides/verificacion-local.md)
+
+</div>
+
+<p align="center">
+  <img src="docs/images/escritorio.png" alt="Atril en computadora: partitura del Himno de la alegría con teclado de piano" width="78%">
+  &nbsp;
+  <img src="docs/images/movil.png" alt="Atril en móvil: controles adaptados a pantalla táctil" width="18%">
+</p>
+
+## ✨ Funciones
 
 - **Edición musical:** notas, silencios, duraciones, compás, tempo, armadura, transposición y deshacer/rehacer.
 - **Edición visual:** arrastrar notas en la partitura para cambiar altura y orden; editor de rejilla con
@@ -29,7 +47,7 @@ teclado o entrada táctil. El trabajo se guarda en el dispositivo, sin crear una
   archivos. En otros navegadores, descarga del PDF y apertura de WhatsApp para adjuntarlo manualmente.
 - **De oído:** herramientas de audio y transcripción local con Basic Pitch, con revisión del resultado.
 
-## Adaptación a dispositivos
+## 📱 Adaptación a dispositivos
 
 La aplicación usa el ancho disponible en monitores y reorganiza sus controles en pantallas pequeñas.
 El piano y el diapasón conservan un tamaño de interacción útil; cuando no caben todas las notas o
@@ -40,7 +58,7 @@ La compatibilidad concreta de compartir archivos, micrófono y procesamiento de 
 navegador y de sus permisos. Consulte la [guía de verificación](docs/guides/verificacion-local.md)
 para las comprobaciones automatizadas y las pruebas manuales en dispositivos.
 
-## Datos y privacidad
+## 🔒 Datos y privacidad
 
 Las partituras se guardan en **IndexedDB del navegador y dispositivo utilizados**. No existe una cuenta
 ni sincronización automática entre dispositivos. Exporte archivos o respaldos para trasladar su trabajo;
@@ -49,7 +67,7 @@ borrar los datos del navegador puede eliminar la biblioteca local.
 La búsqueda remota y la descarga de muestras requieren conexión. El procesamiento de audio de la
 aplicación se realiza localmente; no se envía a un servicio externo de IA.
 
-## Estado y alcance
+## 🚧 Estado y alcance
 
 Atril está en desarrollo. El modelo actual de partitura es **monofónico**. La edición de múltiples
 pistas simultáneas y controles de solo/silencio por pista no están implementados.
@@ -58,7 +76,7 @@ Se pueden cargar y preparar fotografías de partituras. **La conversión automá
 manuscritas a notas editables sigue pendiente**; preparar una imagen no equivale a reconocer sus notas.
 Los resultados de transcripción de audio deben revisarse antes de usarlos como partitura definitiva.
 
-## Desarrollo local
+## 🛠️ Desarrollo local
 
 Requisitos: Node.js 22.12 o superior y npm.
 
@@ -81,7 +99,7 @@ npm run build
 Las pruebas de navegador se ejecutan con `npm run e2e` en un entorno con Playwright y sus navegadores
 instalados. La prueba del modelo de transcripción se ejecuta por separado con `npm run test:model`.
 
-## Arquitectura
+## 🧱 Arquitectura
 
 React y TypeScript con Vite; abcjs para notación, Web Audio para sonido e IndexedDB para persistencia.
 La transcripción usa TensorFlow.js y Basic Pitch en el dispositivo. No requiere un backend propio.
@@ -92,7 +110,7 @@ La transcripción usa TensorFlow.js y Basic Pitch en el dispositivo. No requiere
 - `docs/`: decisiones técnicas, especificaciones y guías.
 - `legacy/`: referencia histórica; no es la aplicación activa.
 
-## Publicación y créditos
+## 🚀 Publicación y créditos
 
 El repositorio se despliega en Vercel. La dirección de producción es **https://atril-xi.vercel.app**;
 los cambios locales solo aparecen allí después de publicarlos correctamente.
