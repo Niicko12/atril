@@ -11,7 +11,8 @@
   --paper: #fffdf7;
   --ink: #16181a;
   --mark: #b3123e;
-  --oor: #c25400;
+  --oor: #a34200;
+  --error: #a34200;
   --display: 'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif;
   --body: 'Work Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   color-scheme: light;
@@ -22,6 +23,7 @@
     --surface: #1c2321;
     --fg: #e6ebe9;
     --muted: #9aa6a1;
+    --error: #f0aa6e;
     --line: #324039;
     --accent: #e2678a;
     --accent-fg: #1a0f13;
@@ -35,6 +37,7 @@
   --surface: #1c2321;
   --fg: #e6ebe9;
   --muted: #9aa6a1;
+  --error: #f0aa6e;
   --line: #324039;
   --accent: #e2678a;
   --accent-fg: #1a0f13;
@@ -59,4 +62,25 @@ body {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
 }

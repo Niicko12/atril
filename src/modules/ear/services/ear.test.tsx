@@ -103,7 +103,7 @@ describe('cliente de Worker (T-WRK-03/04)', () => {
         ]) as unknown as Worker,
     );
     await expect(c.request({ type: 'detect' }, [], progress)).resolves.toMatchObject({ raw: [1] });
-    expect(progress).toHaveBeenCalledWith(0.5);
+    expect(progress).toHaveBeenCalledWith(0.5, undefined, undefined);
   });
   it('error del Worker y cancelar terminan la promesa', async () => {
     let w = null as FakeWorker | null;

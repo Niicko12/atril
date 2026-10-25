@@ -13,6 +13,7 @@ export const S = {
   atRangeLimit: 'Esa nota ya está en el límite del rango.',
   clipped: (n: number) => `${n} ${n === 1 ? 'nota quedó' : 'notas quedaron'} en el límite del rango (La0–Do8).`,
   pianoLabel: 'Teclado de piano',
+  namesGroup: 'Notas por nombre',
   durationGroup: 'Duración',
   hintPiano: 'Desliza para ver más octavas',
   hintFret: (instr: string) => `Afinación de ${instr}`,

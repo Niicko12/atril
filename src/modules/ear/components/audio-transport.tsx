@@ -1,3 +1,4 @@
+import { toast } from '@/shared/toast';
 import { buttonStyles as b } from '@/shared/components/overlay';
 import { PlayIcon } from '@/shared/components/icons';
 import type { AudioPlayer, PlayerState } from '../services/audio-player';
@@ -22,7 +23,7 @@ export function AudioTransport({ player, state, duration }: Props) {
         type="button"
         className={`${b.btn} ${styles.iconBtn}`}
         aria-label={state.playing ? S.pause : S.play}
-        onClick={() => (state.playing ? player.stop() : void player.play())}
+        onClick={() => (state.playing ? player.stop() : void player.play().catch(() => toast(S.errPlayback)))}
       >
         <PlayIcon playing={state.playing} />
       </button>

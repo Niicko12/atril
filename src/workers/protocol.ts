@@ -1,4 +1,4 @@
-import type { RawNote } from '@/core/analysis';
+import type { PolyNote, RawNote } from '@/core/analysis';
 
 /** Mensajes entre la app y los Workers (technical-decisions 8.7). */
 export type PitchRequest = {
@@ -11,10 +11,11 @@ export type PitchRequest = {
 export type StretchRequest = { id: string; type: 'stretch'; samples: Float32Array; sampleRate: number; speed: number };
 
 export type WorkerResponse =
-  | { id: string; type: 'progress'; value: number }
+  | { id: string; type: 'progress'; value: number; stage?: 'loading_model' | 'analyzing'; backend?: string }
   | { id: string; type: 'detect_done'; raw: RawNote[] }
+  | { id: string; type: 'parts_done'; events: PolyNote[] }
   | { id: string; type: 'stretch_done'; samples: Float32Array }
-  | { id: string; type: 'error'; code: 'out_of_memory' | 'internal'; message: string };
+  | { id: string; type: 'error'; code: 'out_of_memory' | 'internal' | 'model_load_failed'; message: string };
 
 /** Progreso como máximo cada 100 ms (ear-spec 20.3). */
 export function throttledProgress(post: (v: number) => void, everyMs = 100): (v: number) => void {

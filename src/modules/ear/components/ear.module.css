@@ -83,7 +83,7 @@
   margin: 0;
 }
 .err {
-  color: var(--oor);
+  color: var(--error);
 }
 .ok {
   color: var(--accent);
@@ -103,4 +103,38 @@
 .iconBtn svg {
   width: 18px;
   height: 18px;
+}
+
+.parts {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  font-size: 13px;
+}
+.parts h3 {
+  margin: 0 0 10px;
+}
+.parts label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.partList {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: grid;
+  gap: 8px;
+}
+.partList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  padding: 10px;
+  border-radius: 8px;
+}
+.partList li span {
+  display: block;
+  margin-top: 4px;
 }

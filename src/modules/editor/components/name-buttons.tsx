@@ -24,7 +24,7 @@ export function NameButtons({ onNote }: Props) {
   const ka = keyAccidentals(key);
   const alterOf = (L: Letter) => (pending === null ? ka[L] : pending);
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (e: React.SyntheticEvent<HTMLDivElement>) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-letter]');
     if (!el) return;
     const s = useScoreStore.getState();
@@ -33,8 +33,15 @@ export function NameButtons({ onNote }: Props) {
   };
 
   return (
-    <div className={styles.names}>
-      <div className={styles.row7} onPointerDown={handlePointerDown} onContextMenu={(e) => e.preventDefault()}>
+    <div className={styles.names} role="group" aria-label={S.namesGroup}>
+      <div
+        className={styles.row7}
+        onPointerDown={handlePointerDown}
+        onClick={(e) => {
+          if (e.detail === 0) handlePointerDown(e);
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+      >
         {LETTERS.map((L) => (
           <button
             key={L}

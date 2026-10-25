@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { keyName } from '@/core';
+import { keyName, midiName, type Note } from '@/core';
 import { DurationTools } from './duration-tools';
 import { Fretboard } from './fretboard';
 import { ModeSwitch } from './mode-switch';
@@ -26,6 +26,14 @@ function useDockHeight(ref: React.RefObject<HTMLDivElement | null>): void {
   }, [ref]);
 }
 
+function readNote(note: Note | undefined, key: number): string {
+  if (!note) return '';
+  const base = [16, 8, 4, 2, 1].find((d) => d === note.d || d * 1.5 === note.d);
+  const pitch = note.p == null ? S.rest : midiName(note.p, key);
+  const duration = base ? S.durations[base]?.toLowerCase() : `${note.d} semicorcheas`;
+  return `${pitch}, ${duration}${base && note.d !== base ? ' con puntillo' : ''}`;
+}
+
 export function InputDock() {
   const dock = useRef<HTMLDivElement>(null);
   useDockHeight(dock);
@@ -33,6 +41,8 @@ export function InputDock() {
   const { mode, setMode } = useModeStore();
   const instrument = useScoreStore(selectInstrument);
   const key = useScoreStore((s) => s.score.key);
+  const lastIndex = useScoreStore((s) => s.lastIndex);
+  const lastNote = useScoreStore((s) => s.score.notes[s.lastIndex]);
   const hint =
     mode === 'piano'
       ? S.hintPiano
@@ -41,6 +51,9 @@ export function InputDock() {
         : S.hintNames(keyName(key));
   return (
     <div className={styles.dock} ref={dock}>
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        <span key={lastIndex}>{readNote(lastNote, key)}</span>
+      </div>
       <DurationTools />
       <ModeSwitch mode={mode} hint={hint} onChange={setMode} />
       <div className={styles.surface}>

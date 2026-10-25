@@ -2,19 +2,16 @@
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
-    "types": [
-      "vite/client",
-      "vitest/globals",
-      "@testing-library/jest-dom",
-      "node"
-    ]
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "node"]
   },
   "include": [
     "src/**/*.test.ts",
     "src/**/*.test.tsx",
     "src/test-setup.ts",
     "src/**/*.d.ts",
-    "src/**/*.test-helper.ts"
+    "src/**/*.test-helper.ts",
+    "tests/integration/**/*.test.ts",
+    "tests/e2e/**/*.ts"
   ],
   "exclude": []
 }

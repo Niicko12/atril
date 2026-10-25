@@ -1,0 +1,66 @@
+.help {
+  display: grid;
+  gap: 14px;
+  font-size: 14px;
+}
+.help p {
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+.help h3 {
+  font-size: 17px;
+  margin: 0 0 10px;
+}
+.help ol,
+.help ul {
+  margin: 0;
+  padding-left: 22px;
+}
+.help li {
+  margin: 0 0 10px;
+  line-height: 1.6;
+}
+.help details {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.help summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 0;
+  min-height: 40px;
+}
+.help details[open] summary {
+  margin-bottom: 9px;
+}
+.help a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+.shortcuts {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.shortcuts div {
+  display: grid;
+  gap: 6px;
+}
+.shortcuts dd {
+  margin: 0;
+  color: var(--muted);
+}
+.shortcuts kbd {
+  font-size: 12px;
+  white-space: normal;
+}
+.report {
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  resize: vertical;
+  font: 12px/1.5 monospace;
+}

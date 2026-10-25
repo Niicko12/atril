@@ -75,7 +75,9 @@ function noteKeys(c: Ctx): boolean {
 
 const isTyping = (t: EventTarget | null): boolean => {
   const el = t as HTMLElement | null;
-  return !!el && (/^(input|select|textarea)$/i.test(el.tagName ?? '') || el.isContentEditable === true);
+  return (
+    !!el && (/^(input|select|textarea|button|a|summary)$/i.test(el.tagName ?? '') || el.isContentEditable === true)
+  );
 };
 
 export interface ShortcutOptions {
@@ -95,7 +97,7 @@ export function useKeyboardShortcuts({ enter, togglePlay, isOverlayOpen }: Short
       return noteKeys({ e, enter, togglePlay });
     };
     const listener = (e: KeyboardEvent) => {
-      if (handle(e)) e.preventDefault();
+      if (!e.defaultPrevented && handle(e)) e.preventDefault();
     };
     document.addEventListener('keydown', listener);
     return () => document.removeEventListener('keydown', listener);

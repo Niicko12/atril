@@ -1,12 +1,13 @@
 import type { Score } from '@/core';
-import { EAR_LIMITS, guessKey, guessTempo, quantize, type RawNote } from '@/core/analysis';
+import { EAR_LIMITS, attachChords, chordsFor, guessKey, guessTempo, quantize, type RawNote } from '@/core/analysis';
 import { useScoreStore } from '@/modules/editor';
 import { prepareReplace } from '@/modules/library';
 import { playbackEngine } from '@/modules/playback';
 import { useEarSession } from '../store/ear-session.store';
 import { S } from '../strings';
 import type { DecodedAudio, EarMode, Region } from '../types';
-import { createWorkerClient } from './worker-client';
+import { cancelParts } from './parts.service';
+import { CancelledError, createWorkerClient } from './worker-client';
 
 export class EarError extends Error {}
 
@@ -51,12 +52,12 @@ export function regionOf(duration: number, a: number | null, b: number | null): 
   return a != null && b != null && b - a > 0.2 ? { a, b, loop: true } : { a: 0, b: duration, loop: false };
 }
 
-const MAX_SEC: Record<EarMode, number> = { solo: EAR_LIMITS.soloMaxSec, mix: EAR_LIMITS.mixMaxSec };
+const MAX_SEC: Record<Exclude<EarMode, 'parts'>, number> = { solo: EAR_LIMITS.soloMaxSec, mix: EAR_LIMITS.mixMaxSec };
 
 /** Analiza la región en el Worker; copia la región (el mono original se conserva para la onda; ear-spec 20.2). */
 export async function analyze(
   audio: DecodedAudio,
-  mode: EarMode,
+  mode: Exclude<EarMode, 'parts'>,
   region: Region,
   onProgress: (v: number) => void,
 ): Promise<{ raw: RawNote[]; cut: boolean }> {
@@ -70,33 +71,47 @@ export async function analyze(
   return { raw: res.raw.map((r) => ({ m: r.m, t0: r.t0 + region.a, t1: r.t1 + region.a })), cut: region.b > end };
 }
 
-export const cancelAnalysis = (): void => pitch.cancel();
+export const cancelAnalysis = (): void => {
+  pitch.cancel();
+  cancelParts();
+};
 
-let stretchCache: { key: string; buffer: AudioBuffer } | null = null;
+let stretchGeneration = 0;
+let stretchCache: { audio: DecodedAudio; key: string; buffer: AudioBuffer } | null = null;
 
 /** Segmento estirado con caché de una entrada (ear-spec 7.2). */
 export async function stretched(audio: DecodedAudio, seg: [number, number], speed: number): Promise<AudioBuffer> {
   const key = `${audio.name}:${seg.join(':')}:${speed}`;
-  if (stretchCache?.key === key) return stretchCache.buffer;
+  if (stretchCache?.audio === audio && stretchCache.key === key) return stretchCache.buffer;
+  const version = stretchGeneration;
   const sr = audio.sampleRate;
   const copy = audio.mono.slice(Math.floor(seg[0] * sr), Math.floor(seg[1] * sr));
   const { samples } = await stretcher.request<{ samples: Float32Array }>(
     { type: 'stretch', samples: copy, sampleRate: sr, speed },
     [copy.buffer],
   );
+  if (version !== stretchGeneration) throw new CancelledError();
   const buffer = playbackEngine.getContext().createBuffer(1, samples.length, sr);
   buffer.getChannelData(0).set(samples);
-  stretchCache = { key, buffer };
+  stretchCache = { audio, key, buffer };
   return buffer;
+}
+
+/** Libera el audio original retenido por la caché y cancela el trabajo lento al cerrar. */
+export function releaseAudio(audio: DecodedAudio): void {
+  stretchGeneration++;
+  stretcher.cancel();
+  if (stretchCache?.audio === audio) stretchCache = null;
 }
 
 /** Resultado → partitura nueva en el editor (ear-spec 17.1). */
 export async function openResult(
   audio: DecodedAudio,
-  mode: EarMode,
+  mode: Exclude<EarMode, 'parts'>,
   raw: RawNote[],
+  valid: () => boolean = () => true,
 ): Promise<{ notes: number; bpm: number } | null> {
-  if (!(await prepareReplace())) return null;
+  if (!valid() || !(await prepareReplace()) || !valid()) return null;
   const bpm = guessTempo(raw);
   const { notes, timeline } = quantize(raw, bpm);
   const s = useScoreStore.getState();
@@ -115,17 +130,23 @@ export async function openResult(
     savedAt: null,
   };
   useScoreStore.getState().replaceScore(score);
-  useEarSession.getState().set({ raw, origin: null, timeline, revisionAtImport: useScoreStore.getState().revision });
+  useEarSession
+    .getState()
+    .set({ raw, origin: null, timeline, revisionAtImport: useScoreStore.getState().revision, scoreId: score.id });
   return { notes: notes.filter((n) => n.p != null).length, bpm };
 }
 
 /** Re-cuantiza con el tempo actual, sin volver a analizar; entra al historial (ear-spec 18). */
 export function requantize(): number | null {
   const session = useEarSession.getState().session;
-  if (!session) return null;
+  if (!session || (session.scoreId && session.scoreId !== useScoreStore.getState().score.id)) return null;
   const tempo = useScoreStore.getState().score.tempo;
   const { notes, timeline } = quantize(session.raw, tempo, session.origin);
-  useScoreStore.getState().replaceNotesKeepingMeta(notes);
+  const finalNotes =
+    session.withChords && session.events
+      ? attachChords(notes, chordsFor(session.events, tempo, session.origin ?? 0, useScoreStore.getState().score.key))
+      : notes;
+  useScoreStore.getState().replaceNotesKeepingMeta(finalNotes);
   useEarSession.getState().set({ ...session, timeline, revisionAtImport: useScoreStore.getState().revision });
   return tempo;
 }

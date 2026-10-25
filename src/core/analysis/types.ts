@@ -6,3 +6,7 @@ export interface RawNote {
 }
 
 export type Progress = (value: number) => void;
+
+export interface PolyNote extends RawNote {
+  amplitude?: number;
+}

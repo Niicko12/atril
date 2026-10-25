@@ -1,4 +1,4 @@
-export type EarMode = 'solo' | 'mix';
+export type EarMode = 'solo' | 'mix' | 'parts';
 
 export interface DecodedAudio {
   name: string;

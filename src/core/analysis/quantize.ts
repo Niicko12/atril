@@ -41,3 +41,19 @@ export function quantize(
   }
   return { notes: notes.slice(0, MAX_NOTES), timeline: timeline.filter((t) => t.index < MAX_NOTES) };
 }
+
+/** Índice por búsqueda binaria; los huecos entre notas no resaltan nada (F16). */
+export function timelineIndex(timeline: readonly TimelineEntry[], time: number): number {
+  if (!Number.isFinite(time)) return -1;
+  let low = 0,
+    high = timeline.length - 1;
+  while (low <= high) {
+    const mid = (low + high) >>> 1,
+      entry = timeline[mid];
+    if (!entry) return -1;
+    if (time < entry.t0) high = mid - 1;
+    else if (time >= entry.t1) low = mid + 1;
+    else return entry.index;
+  }
+  return -1;
+}

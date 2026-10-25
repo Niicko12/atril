@@ -1,4 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { loadHelpOverlay } from '@/modules/help';
 import { ExportBar } from '@/modules/export';
 
 import { emptyScore } from '@/core';
@@ -24,6 +25,7 @@ import { playbackEngine } from '@/modules/playback';
 import { ScoreSheet, ScoreStatus } from '@/modules/score-view';
 import { buttonStyles as b } from '@/shared/components/overlay';
 import { useArmed } from '@/shared/hooks/use-armed';
+import { LazyPanelBoundary } from '@/shared/components/lazy-panel';
 import { Toast } from '@/shared/toast';
 import styles from './app-shell.module.css';
 import { ImportWarnings, importStrings as I, loadFindOverlay } from '@/modules/import';
@@ -32,6 +34,7 @@ import { earStrings as E, loadEarPanel } from '@/modules/ear';
 const LibraryOverlay = lazy(loadLibraryOverlay);
 const FindOverlay = lazy(loadFindOverlay);
 const EarPanel = lazy(loadEarPanel);
+const HelpOverlay = lazy(loadHelpOverlay);
 
 function togglePlay(): void {
   if (playbackEngine.isPlaying) return playbackEngine.stopAll();
@@ -55,18 +58,21 @@ export function AppShell() {
   const [library, setLibrary] = useState(false);
   const [find, setFind] = useState(false);
   const [ear, setEar] = useState(false);
+  const [help, setHelp] = useState(false);
   const enter = useNoteInput();
   const enterFromKeyboard = useCallback(
     (midi: number) => enter(midi, document.querySelector<HTMLElement>(`[data-midi="${midi}"]`)),
     [enter],
   );
-  const isOverlayOpen = useCallback(() => library || find, [library, find]);
+  const isOverlayOpen = useCallback(() => library || find || help, [library, find, help]);
   useKeyboardShortcuts({ enter: enterFromKeyboard, togglePlay, isOverlayOpen });
   useEffect(() => startAutosave(), []);
   const { otherTabOpen, otherTabSaved } = useTabGuard();
   const fresh = useArmed(() => void newScore());
   const closeLibrary = useCallback(() => setLibrary(false), []);
   const closeFind = useCallback(() => setFind(false), []);
+  const closeHelp = useCallback(() => setHelp(false), []);
+  const closeEar = useCallback(() => setEar(false), []);
 
   return (
     <>
@@ -77,6 +83,9 @@ export function AppShell() {
             <p>Escribe, escucha y transporta partituras para tu instrumento</p>
           </div>
           <div className={styles.actions}>
+            <button type="button" className={b.btn} onClick={() => setHelp(true)}>
+              Ayuda
+            </button>
             <button type="button" className={`${b.btn} ${b.primary}`} onClick={() => setFind(true)}>
               {I.find}
             </button>
@@ -99,7 +108,9 @@ export function AppShell() {
         <ViewBar />
         {ear && (
           <Suspense fallback={null}>
-            <EarPanel onClose={() => setEar(false)} />
+            <LazyPanelBoundary onClose={closeEar}>
+              <EarPanel onClose={closeEar} />
+            </LazyPanelBoundary>
           </Suspense>
         )}
         <ImportWarnings />
@@ -114,12 +125,33 @@ export function AppShell() {
       <InputDock />
       {find && (
         <Suspense fallback={null}>
-          <FindOverlay onClose={closeFind} />
+          <LazyPanelBoundary onClose={closeFind}>
+            <FindOverlay onClose={closeFind} />
+          </LazyPanelBoundary>
+        </Suspense>
+      )}
+      {help && (
+        <Suspense fallback={null}>
+          <LazyPanelBoundary onClose={closeHelp}>
+            <HelpOverlay
+              onClose={closeHelp}
+              onEar={() => {
+                setHelp(false);
+                setEar(true);
+              }}
+              onLibrary={() => {
+                setHelp(false);
+                setLibrary(true);
+              }}
+            />
+          </LazyPanelBoundary>
         </Suspense>
       )}
       {library && (
         <Suspense fallback={null}>
-          <LibraryOverlay onClose={closeLibrary} />
+          <LazyPanelBoundary onClose={closeLibrary}>
+            <LibraryOverlay onClose={closeLibrary} />
+          </LazyPanelBoundary>
         </Suspense>
       )}
     </>

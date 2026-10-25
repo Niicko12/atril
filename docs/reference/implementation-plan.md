@@ -182,6 +182,8 @@ Total ≈ 24 h.
 
 ## 8. Semana 6 — De oído: partes, acordes y seguimiento
 
+**Avance 2026-10-24:** 6.1–6.6 implementados y verificados automáticamente. 6.7 tiene escenarios preparados, con ejecución de navegador pendiente por restricción del host. 6.8 sigue condicionado a esa validación. Ver [registro de avance](../development/current/2026-10-24.md).
+
 ### 8.1 Tareas
 
 | # | Tarea | Spec | Estimado |
@@ -206,6 +208,8 @@ Total ≈ 20-24 h.
 ---
 
 ## 9. Semana 7 — Calidad (M4)
+
+**Avance 2026-10-24:** mejoras de foco/teclado, contraste, recuperación de cargas y Ayuda/Acerca de implementadas, con 367 pruebas aprobadas. La auditoría axe/lectores de pantalla, Lighthouse y verificaciones manuales siguen pendientes; M4 no está cerrado. Ver el registro de avance.
 
 ### 9.1 Tareas
 

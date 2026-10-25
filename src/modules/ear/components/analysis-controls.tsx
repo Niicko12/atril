@@ -14,6 +14,11 @@ interface Props {
   onRequantize(): void;
 }
 
+function progressText(mode: EarMode, state: AnalysisState, pct: number): string {
+  if (mode !== 'parts') return (mode === 'mix' ? S.listeningMix : S.listeningSolo)(pct);
+  return state.kind === 'running' && state.stage === 'loading_model' ? S.loadingModel : S.listeningParts(pct);
+}
+
 /** Modo, "Escribir la melodía sola", Cancelar, progreso y "Reajustar ritmo" (ear-spec 17-20). */
 export function AnalysisControls({ mode, state, hasSession, onMode, onDetect, onCancel, onRequantize }: Props) {
   const running = state.kind === 'running';
@@ -30,9 +35,10 @@ export function AnalysisControls({ mode, state, hasSession, onMode, onDetect, on
         >
           <option value="solo">{S.modes.solo}</option>
           <option value="mix">{S.modes.mix}</option>
+          <option value="parts">{S.modes.parts}</option>
         </select>
         <button type="button" className={`${b.btn} ${b.primary}`} disabled={running} onClick={onDetect}>
-          {S.detect}
+          {mode === 'parts' ? S.detectParts : S.detect}
         </button>
         {running && (
           <button type="button" className={b.btn} onClick={onCancel}>
@@ -49,7 +55,7 @@ export function AnalysisControls({ mode, state, hasSession, onMode, onDetect, on
         <>
           <progress className={styles.progress} max={100} value={pct} aria-label={S.detect} />
           <span className={styles.msg} aria-live="polite">
-            {(mode === 'mix' ? S.listeningMix : S.listeningSolo)(pct)}
+            {progressText(mode, state, pct)}
           </span>
         </>
       )}

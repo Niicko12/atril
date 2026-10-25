@@ -37,7 +37,13 @@ export const Fretboard = memo(function Fretboard({ instrument, fifths, onNote }:
       <div
         className={styles.fb}
         onPointerDown={handlePointerDown}
+        onClick={(e) => {
+          if (e.detail !== 0) return;
+          const el = (e.target as HTMLElement).closest<HTMLElement>('[data-midi]');
+          if (el) onNote(Number(el.dataset.midi), el);
+        }}
         onContextMenu={(e) => e.preventDefault()}
+        role="group"
         aria-label={S.fretLabel}
       >
         <div className={styles.num}>{header ?? ''}</div>

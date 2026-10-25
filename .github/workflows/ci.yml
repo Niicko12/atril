@@ -26,5 +26,7 @@ jobs:
         run: npm run check:modules
       - name: Tests y cobertura
         run: npm run test -- --coverage
+      - name: Modelo Basic Pitch real (CPU, sin cobertura)
+        run: npm run test:model
       - name: Build y presupuesto de bundle
         run: npm run build

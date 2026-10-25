@@ -60,7 +60,7 @@
   font-size: 13px;
 }
 .err {
-  color: var(--oor);
+  color: var(--error);
   font-size: 13px;
   margin: 0;
 }

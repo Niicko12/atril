@@ -40,6 +40,7 @@ export function Waveform({ mono, duration, state, onSeek, onLoop }: Props) {
     el.width = Math.round(w * dpr);
     el.height = Math.round(h * dpr);
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
     const X = (t: number) => (t / duration) * w;
     if (state.a != null && state.b != null) {
       g.fillStyle = css('--accent-soft');
@@ -60,6 +61,21 @@ export function Waveform({ mono, duration, state, onSeek, onLoop }: Props) {
       ref={canvas}
       className={styles.wave}
       aria-label={S.waveLabel}
+      role="slider"
+      tabIndex={0}
+      aria-valuemin={0}
+      aria-valuemax={duration}
+      aria-valuenow={state.pos}
+      aria-valuetext={S.position(state.pos, duration)}
+      onKeyDown={(e) => {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        e.preventDefault();
+        e.stopPropagation();
+        onSeek(Math.max(0, Math.min(duration, state.pos + (e.key === 'ArrowRight' ? 1 : -1))));
+      }}
+      onPointerCancel={() => {
+        drag.current = null;
+      }}
       onPointerDown={(e) => {
         drag.current = { x0: at(e), w: e.currentTarget.getBoundingClientRect().width, moved: false };
         e.currentTarget.setPointerCapture?.(e.pointerId);

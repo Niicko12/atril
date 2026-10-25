@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { buttonStyles as b } from '@/shared/components/overlay';
 import { useAudioPlayer } from '../hooks/use-audio-player';
+import { useFollowAudio } from '../hooks/use-follow-audio';
+import { PartsList } from './parts-list';
 import { useEarAnalysis } from '../hooks/use-ear-analysis';
 import { decodeFile, EarError, regionOf, requantize } from '../services/ear.service';
 import { formatTime } from '../services/peaks';
@@ -12,23 +14,61 @@ import { AudioTransport } from './audio-transport';
 import { Waveform } from './waveform';
 import styles from './ear.module.css';
 
+function LoadMessage({ value }: { value: { text: string; err: boolean } | null }) {
+  return (
+    value && (
+      <span className={`${styles.msg} ${value.err ? styles.err : ''}`} aria-live="polite">
+        {value.text}
+      </span>
+    )
+  );
+}
+
+function AnalysisNotices({ followDisabled, slow }: { followDisabled: boolean; slow: boolean }) {
+  return (
+    <>
+      {followDisabled && (
+        <p className={styles.muted} role="status">
+          {S.followDisabled}
+        </p>
+      )}
+      {slow && <p className={styles.muted}>{S.slowBackend}</p>}
+    </>
+  );
+}
+
 /** Panel "De oído": audio, onda, transporte y "Escribir la melodía sola" (ear-spec 3-6, 23). */
 export function EarPanel({ onClose }: { onClose(): void }) {
   const [audio, setAudio] = useState<DecodedAudio | null>(null);
+  const [withChords, setWithChords] = useState(true);
+  const loadVersion = useRef(0);
+  useEffect(
+    () => () => {
+      loadVersion.current++;
+    },
+    [],
+  );
   const [mode, setMode] = useState<EarMode>('solo');
   const [loadMsg, setLoadMsg] = useState<{ text: string; err: boolean } | null>(null);
   const { player, state } = useAudioPlayer(audio);
   const analysis = useEarAnalysis();
+  const followDisabled = useFollowAudio(player);
   const hasSession = useEarSession((s) => s.session !== null);
 
   const choose = async (file: File | undefined) => {
     if (!file) return;
+    const version = ++loadVersion.current;
     analysis.cancel();
+    player?.stop();
+    useEarSession.getState().set(null);
     setLoadMsg({ text: S.opening, err: false });
     try {
-      setAudio(await decodeFile(file));
+      const decoded = await decodeFile(file);
+      if (version !== loadVersion.current) return;
+      setAudio(decoded);
       setLoadMsg(null);
     } catch (e) {
+      if (version !== loadVersion.current) return;
       setLoadMsg({ text: e instanceof EarError ? e.message : S.errDecode, err: true });
     }
   };
@@ -41,7 +81,7 @@ export function EarPanel({ onClose }: { onClose(): void }) {
     const bpm = requantize();
     if (bpm) analysis.setState({ kind: 'done', message: S.requantDone(bpm) });
   };
-  const msg = analysis.state.kind === 'done' || analysis.state.kind === 'error' ? analysis.state : null;
+  const msg = analysis.state.kind === 'running' || analysis.state.kind === 'idle' ? null : analysis.state;
 
   return (
     <section className={styles.ear} aria-label={S.title}>
@@ -51,7 +91,9 @@ export function EarPanel({ onClose }: { onClose(): void }) {
           type="button"
           className={b.btn}
           onClick={() => {
+            loadVersion.current++;
             analysis.cancel();
+            useEarSession.getState().set(null);
             onClose();
           }}
         >
@@ -61,6 +103,7 @@ export function EarPanel({ onClose }: { onClose(): void }) {
       <ul className={styles.tips}>
         <li>{S.tipSolo}</li>
         <li>{S.tipMix}</li>
+        <li>{S.tipParts}</li>
         <li>{S.tipEar}</li>
       </ul>
       <span className={styles.privacy}>{S.privacy}</span>
@@ -78,11 +121,7 @@ export function EarPanel({ onClose }: { onClose(): void }) {
             {audio.name} · {formatTime(audio.duration)}
           </span>
         )}
-        {loadMsg && (
-          <span className={`${styles.msg} ${loadMsg.err ? styles.err : ''}`} aria-live="polite">
-            {loadMsg.text}
-          </span>
-        )}
+        <LoadMessage value={loadMsg} />
       </div>
       {audio && player && (
         <>
@@ -94,6 +133,7 @@ export function EarPanel({ onClose }: { onClose(): void }) {
             onLoop={(a, bb) => player.setLoop(a, bb)}
           />
           <AudioTransport player={player} state={state} duration={audio.duration} />
+          <AnalysisNotices followDisabled={followDisabled} slow={analysis.slow} />
           <AnalysisControls
             mode={mode}
             state={analysis.state}
@@ -103,6 +143,21 @@ export function EarPanel({ onClose }: { onClose(): void }) {
             onCancel={analysis.cancel}
             onRequantize={reajustar}
           />
+          {analysis.parts && (
+            <PartsList
+              analysis={analysis.parts}
+              withChords={withChords}
+              disabled={analysis.state.kind === 'running'}
+              onChords={(value) => {
+                setWithChords(value);
+                useEarSession.getState().setChords(value);
+              }}
+              onOpen={(part) => {
+                player.stop();
+                void analysis.open(audio, part, withChords);
+              }}
+            />
+          )}
         </>
       )}
       {msg && (
