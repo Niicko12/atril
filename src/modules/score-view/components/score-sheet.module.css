@@ -12,6 +12,13 @@
     0 10px 30px -14px rgba(20, 30, 28, 0.35);
   overflow: hidden;
 }
+@media (max-width: 640px) {
+  .paper {
+    min-height: 190px;
+    padding: 10px 7px 8px;
+    border-radius: 8px;
+  }
+}
 .paper svg {
   display: block;
   max-width: 100%;

@@ -35,6 +35,9 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+.topActions {
+  justify-content: flex-end;
+}
 .statusRow {
   display: flex;
   justify-content: space-between;
@@ -59,10 +62,50 @@
   .wrap {
     padding-inline: max(10px, env(safe-area-inset-left, 0px)) max(10px, env(safe-area-inset-right, 0px));
   }
-  .actions {
+  .topActions {
     width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
-  .actions > button {
-    flex: 1 1 auto;
+  .topActions > button {
+    min-width: 0;
+    min-height: 44px;
+    padding-inline: 6px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    gap: 10px;
+    padding-top: max(10px, env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--dock-h, 220px) + 14px + env(safe-area-inset-bottom, 0px));
+  }
+  .top {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .brand h1 {
+    font-size: 30px;
+  }
+  .brand p {
+    max-width: 34ch;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .topActions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .topActions > button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 7px 6px;
+    font-size: 12px;
+    line-height: 1.2;
   }
 }

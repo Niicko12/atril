@@ -33,6 +33,23 @@
 @media (max-width: 640px) {
   .meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 8px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .field {
+    gap: 5px;
+  }
+  .field label {
+    font-size: 10px;
+  }
+  .field input,
+  .field select {
+    min-height: 44px;
+    padding-inline: 9px;
+    font-size: 16px;
   }
 }
 .viewbar {
@@ -40,6 +57,18 @@
   flex-wrap: wrap;
   gap: 10px 16px;
   align-items: center;
+}
+@media (max-width: 640px) {
+  .viewbar {
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .move {
+    width: 100%;
+  }
 }
 .seg {
   display: inline-flex;

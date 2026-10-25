@@ -92,7 +92,7 @@ export function AppShell() {
             <h1>Atril</h1>
             <p>Escribe, escucha y transporta partituras para tu instrumento</p>
           </div>
-          <div className={styles.actions}>
+          <div className={`${styles.actions} ${styles.topActions}`}>
             <button type="button" className={b.btn} onClick={() => setHelp(true)}>
               Ayuda
             </button>
